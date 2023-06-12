@@ -5,17 +5,20 @@
 package scenario_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/jaypipes/gdt-core/plugin"
 	"github.com/jaypipes/gdt-core/scenario"
 	"github.com/jaypipes/gdt-core/spec"
+	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestFrom(t *testing.T) {
+func TestFromNoPlugins(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
@@ -23,7 +26,6 @@ func TestFrom(t *testing.T) {
 	f, err := os.Open(fp)
 	require.Nil(err)
 
-	// FromReader is just a simple wrapper around FromBytes.
 	s, err := scenario.FromReader(f, scenario.WithPath(fp))
 	assert.Nil(err)
 	assert.NotNil(s)
@@ -50,4 +52,31 @@ func TestFrom(t *testing.T) {
 		},
 		sc.Tests,
 	)
+}
+
+type failingPlugin struct{}
+
+func (p *failingPlugin) Info() plugin.PluginInfo {
+	return plugin.PluginInfo{
+		Name: "failer",
+	}
+}
+
+func (p *failingPlugin) Parse(gdttypes.Appendable, []byte) error {
+	return fmt.Errorf("Indy, bad dates!")
+}
+
+func TestFromFailingPlugin(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	fp := filepath.Join("testdata", "http-failure.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	plugin.Register(&failingPlugin{})
+
+	s, err := scenario.FromReader(f, scenario.WithPath(fp))
+	assert.NotNil(err)
+	assert.Nil(s)
 }

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/jaypipes/gdt-core/plugin"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"gopkg.in/yaml.v3"
 )
@@ -35,22 +36,19 @@ func FromBytes(
 	// determines the type of test by simply looking for a "type" top-level
 	// element in the YAML. If no "type" element was found, the test type
 	// defaults to HTTP.  Once the type is determined, then the test case
-	// module (e.g. gdt/http) is called to parse the file into the case
+	// module (e.g. gdt-http) is called to parse the file into the case
 	// type-specific schema
 	s := New(mods...)
 	if err := yaml.Unmarshal(contents, s); err != nil {
 		return nil, err
 	}
 
-	//s.Type = strings.ToLower(s.Type)
-	//parser := TestTypeParsers.Get(s.Type)
-	//if parser == nil {
-	//	return nil, ErrUnknownParser
-	//}
+	for _, p := range plugin.List() {
+		if err := p.Parse(s, contents); err != nil {
+			return nil, err
+		}
 
-	//if err := parser.Parse(&s, contents); err != nil {
-	//	return nil, err
-	//}
+	}
 
 	return s, nil
 }
