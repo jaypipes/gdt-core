@@ -32,7 +32,7 @@ type Scenario struct {
 	// Require specifies an ordered list of fixtures the test case depends on.
 	Require []string `json:"require,omitempty"`
 	// Tests is the collection of test units in this test case.
-	Tests []spec.Spec `json:"tests,omitempty"`
+	Tests []*spec.Spec `json:"tests,omitempty"`
 	// units is a collection of tests that are run as part of this file. These
 	// will be the fully parsed and materialized plugin TestSpec structs.
 	units []gdttypes.Runnable `json:"-"`

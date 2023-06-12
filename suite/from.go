@@ -39,7 +39,7 @@ func FromDir(dirPath string) (*Suite, error) {
 			}
 			defer f.Close()
 
-			tc, err := scenario.FromReader(f, path)
+			tc, err := scenario.FromReader(f, scenario.WithPath(path))
 			if err != nil {
 				return err
 			}
