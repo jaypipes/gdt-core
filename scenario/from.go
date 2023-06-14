@@ -32,22 +32,10 @@ func FromBytes(
 	contents []byte,
 	mods ...ScenarioModifier,
 ) (gdttypes.Runnable, error) {
-	// We do a double-parse of the test scenario file. The first pass
-	// determines the type of test by simply looking for a "type" top-level
-	// element in the YAML. If no "type" element was found, the test type
-	// defaults to HTTP.  Once the type is determined, then the test case
-	// module (e.g. gdt-http) is called to parse the file into the case
-	// type-specific schema
 	s := New(mods...)
+	s.plugins = plugin.List()
 	if err := yaml.Unmarshal(contents, s); err != nil {
 		return nil, err
-	}
-
-	for _, p := range plugin.List() {
-		if err := p.Parse(s, contents); err != nil {
-			return nil, err
-		}
-
 	}
 
 	return s, nil

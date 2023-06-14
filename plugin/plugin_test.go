@@ -5,12 +5,33 @@
 package plugin_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/jaypipes/gdt-core/plugin"
-	gdttypes "github.com/jaypipes/gdt-core/types"
+	"github.com/jaypipes/gdt-core/spec"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
 )
+
+type fooDefaults struct {
+	Foo string `yaml:"foo"`
+}
+
+func (d *fooDefaults) UnmarshalYAML(node *yaml.Node) error {
+	return nil
+}
+
+type fooSpec struct {
+	spec.Spec
+	Foo string `yaml:"foo"`
+}
+
+func (s *fooSpec) Run(context.Context, *testing.T) {}
+
+func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
+	return nil
+}
 
 type fooPlugin struct{}
 
@@ -20,8 +41,12 @@ func (p *fooPlugin) Info() plugin.PluginInfo {
 	}
 }
 
-func (p *fooPlugin) Parse(gdttypes.Appendable, []byte) error {
-	return nil
+func (p *fooPlugin) Defaults() yaml.Unmarshaler {
+	return &fooDefaults{}
+}
+
+func (p *fooPlugin) Specs() []yaml.Unmarshaler {
+	return []yaml.Unmarshaler{&fooSpec{}}
 }
 
 func TestRegisterAndList(t *testing.T) {

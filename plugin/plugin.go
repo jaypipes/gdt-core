@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	gdttypes "github.com/jaypipes/gdt-core/types"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -34,15 +34,26 @@ type PluginInfo struct {
 type Plugin interface {
 	// Info returns a struct that describes what the plugin does
 	Info() PluginInfo
-	// Parse takes the supplied raw contents and appends any elements to the
-	// supplied Appendable
-	Parse(gdttypes.Appendable, []byte) error
+	// Defaults returns a YAML Unmarshaler types that the plugin knows how
+	// to parse its defaults configuration with.
+	Defaults() yaml.Unmarshaler
+	// Specs returns a list of YAML Unmarshaler types that the plugin knows
+	// how to parse.
+	Specs() []yaml.Unmarshaler
 }
 
 // pluginRegistry stores all known Plugins
 type pluginRegistry struct {
 	sync.RWMutex
 	entries map[string]Plugin
+}
+
+// Unregister delists the Plugin with gdt. Only really useful for testing.
+func Unregister(p Plugin) {
+	plugins.Lock()
+	defer plugins.Unlock()
+	lowered := strings.ToLower(p.Info().Name)
+	delete(plugins.entries, lowered)
 }
 
 // Register registers a Plugin with gdt.

@@ -14,38 +14,14 @@ import (
 // inherit from this base struct.
 type Spec struct {
 	// Name for the individual test unit
-	Name string `json:"name,omitempty"`
+	Name string `yaml:"name,omitempty"`
 	// Description of the test unit
-	Description string `json:"description,omitempty"`
+	Description string `yaml:"description,omitempty"`
 }
 
-// SpecModifier sets some value on the test suite
-type SpecModifier func(s *Spec)
-
-// WithName sets a test suite's Name attribute
-func WithName(name string) SpecModifier {
-	return func(s *Spec) {
-		s.Name = name
-	}
-}
-
-// WithDescription sets a test suite's Description attribute
-func WithDescription(description string) SpecModifier {
-	return func(s *Spec) {
-		s.Description = description
-	}
-}
-
-// New returns a new Spec
-func New(mods ...SpecModifier) *Spec {
-	s := &Spec{}
-	for _, mod := range mods {
-		mod(s)
-	}
-	return s
-}
-
-// Run executes the specific test unit
-func (s *Spec) Run(ctx context.Context, t *testing.T) {
-
-}
+// Run executes the specific test unit.
+//
+// NOTE(jaypipes): consider this a pure virtual function. Should not be
+// executed since the plugin-specific subclass should implement its own Run()
+// method.
+func (s *Spec) Run(ctx context.Context, t *testing.T) {}
