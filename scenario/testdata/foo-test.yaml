@@ -1,0 +1,10 @@
+name: foo-test
+description: a scenario with some foo test specs
+defaults:
+  foo:
+    key: value
+tests:
+  - foo: bar
+    name: bar
+  - foo: baz
+    description: bazzy

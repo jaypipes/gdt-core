@@ -10,6 +10,7 @@ import (
 
 	"github.com/jaypipes/gdt-core/plugin"
 	"github.com/jaypipes/gdt-core/spec"
+	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
@@ -45,8 +46,8 @@ func (p *fooPlugin) Defaults() yaml.Unmarshaler {
 	return &fooDefaults{}
 }
 
-func (p *fooPlugin) Specs() []yaml.Unmarshaler {
-	return []yaml.Unmarshaler{&fooSpec{}}
+func (p *fooPlugin) Specs() []gdttypes.Spec {
+	return []gdttypes.Spec{&fooSpec{}}
 }
 
 func TestRegisterAndList(t *testing.T) {

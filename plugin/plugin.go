@@ -9,6 +9,8 @@ import (
 	"sync"
 
 	"gopkg.in/yaml.v3"
+
+	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 var (
@@ -39,7 +41,7 @@ type Plugin interface {
 	Defaults() yaml.Unmarshaler
 	// Specs returns a list of YAML Unmarshaler types that the plugin knows
 	// how to parse.
-	Specs() []yaml.Unmarshaler
+	Specs() []gdttypes.Spec
 }
 
 // pluginRegistry stores all known Plugins
