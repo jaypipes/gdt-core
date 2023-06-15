@@ -159,7 +159,7 @@ func TestNoTests(t *testing.T) {
 	assert.IsType(&scenario.Scenario{}, s)
 	sc := s.(*scenario.Scenario)
 	assert.Equal("no-tests", sc.Name)
-	assert.Equal("testdata/no-tests.yaml", sc.Path)
+	assert.Equal(filepath.Join("testdata", "no-tests.yaml"), sc.Path)
 	assert.Equal([]string{"books_api", "books_data"}, sc.Require)
 	assert.Equal(
 		map[string]interface{}{
@@ -277,7 +277,7 @@ func TestKnownSpec(t *testing.T) {
 	assert.IsType(&scenario.Scenario{}, s)
 	sc := s.(*scenario.Scenario)
 	assert.Equal("foo-test", sc.Name)
-	assert.Equal("testdata/foo-test.yaml", sc.Path)
+	assert.Equal(filepath.Join("testdata", "foo-test.yaml"), sc.Path)
 	assert.Empty(sc.Require)
 	assert.Equal(
 		map[string]interface{}{
