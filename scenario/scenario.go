@@ -7,16 +7,15 @@ package scenario
 import (
 	gopath "path"
 
-	"github.com/jaypipes/gdt-core/plugin"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 // Scenario is a generalized gdt test case file. It contains a set of Runnable
 // test units.
 type Scenario struct {
-	// plugins is the list of plugins known to the scenario. This is injected
+	// Plugins is the list of plugins known to the scenario. This is injected
 	// during scenario file parsing.
-	plugins []plugin.Plugin
+	Plugins []gdttypes.Plugin `yaml:"-"`
 	// Path is the filepath to the test case.
 	Path string `yaml:"-"`
 	// Name is the short name for the test case. If empty, defaults to the base
@@ -81,6 +80,13 @@ func WithDefaults(defaults map[string]interface{}) ScenarioModifier {
 func WithRequires(require []string) ScenarioModifier {
 	return func(s *Scenario) {
 		s.Require = require
+	}
+}
+
+// WithPlugins sets a test scenario's Plugins attribute
+func WithPlugins(plugins []gdttypes.Plugin) ScenarioModifier {
+	return func(s *Scenario) {
+		s.Plugins = plugins
 	}
 }
 

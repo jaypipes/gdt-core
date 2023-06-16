@@ -31,17 +31,19 @@ func (s *fooSpec) Run(ctx context.Context, t *testing.T) {
 
 func TestRun(t *testing.T) {
 	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
 
 	fp := filepath.Join("testdata", "foo-test.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
-	p := &fooPlugin{}
-
-	plugin.Register(p)
-	defer plugin.Unregister(p)
-
-	s, err := scenario.FromReader(f, scenario.WithPath(fp))
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithPlugins(reg.List()),
+	)
 	require.Nil(err)
 	require.NotNil(s)
 

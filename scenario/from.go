@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/jaypipes/gdt-core/plugin"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"gopkg.in/yaml.v3"
 )
@@ -33,7 +32,6 @@ func FromBytes(
 	mods ...ScenarioModifier,
 ) (gdttypes.Runnable, error) {
 	s := New(mods...)
-	s.plugins = plugin.List()
 	if err := yaml.Unmarshal(contents, s); err != nil {
 		return nil, err
 	}

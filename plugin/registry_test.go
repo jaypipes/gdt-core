@@ -36,8 +36,8 @@ func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
 
 type fooPlugin struct{}
 
-func (p *fooPlugin) Info() plugin.PluginInfo {
-	return plugin.PluginInfo{
+func (p *fooPlugin) Info() gdttypes.PluginInfo {
+	return gdttypes.PluginInfo{
 		Name: "foo",
 	}
 }
@@ -53,20 +53,22 @@ func (p *fooPlugin) Specs() []gdttypes.Spec {
 func TestRegisterAndList(t *testing.T) {
 	assert := assert.New(t)
 
-	plugins := plugin.List()
+	r := plugin.NewRegistry()
+
+	plugins := r.List()
 	assert.Equal(0, len(plugins))
 
-	plugin.Register(&fooPlugin{})
+	r.Add(&fooPlugin{})
 
-	plugins = plugin.List()
+	plugins = r.List()
 	assert.Equal(1, len(plugins))
 	assert.Equal("foo", plugins[0].Info().Name)
 
-	// Register called twice with the same named plugin should be be a no-op
+	// Add called twice with the same named plugin should be be a no-op
 
-	plugin.Register(&fooPlugin{})
+	r.Add(&fooPlugin{})
 
-	plugins = plugin.List()
+	plugins = r.List()
 	assert.Equal(1, len(plugins))
 	assert.Equal("foo", plugins[0].Info().Name)
 }

@@ -172,8 +172,8 @@ func TestNoTests(t *testing.T) {
 
 type failingPlugin struct{}
 
-func (p *failingPlugin) Info() plugin.PluginInfo {
-	return plugin.PluginInfo{
+func (p *failingPlugin) Info() gdttypes.PluginInfo {
+	return gdttypes.PluginInfo{
 		Name: "failer",
 	}
 }
@@ -189,17 +189,19 @@ func (p *failingPlugin) Specs() []gdttypes.Spec {
 func TestFailingPlugin(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&failingPlugin{})
 
 	fp := filepath.Join("testdata", "foo-test.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
-	p := &failingPlugin{}
-
-	plugin.Register(p)
-	defer plugin.Unregister(p)
-
-	s, err := scenario.FromReader(f, scenario.WithPath(fp))
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithPlugins(reg.List()),
+	)
 	assert.NotNil(err)
 	assert.NotErrorIs(err, errors.ErrUnknownSpec)
 	assert.Nil(s)
@@ -207,8 +209,8 @@ func TestFailingPlugin(t *testing.T) {
 
 type barPlugin struct{}
 
-func (p *barPlugin) Info() plugin.PluginInfo {
-	return plugin.PluginInfo{
+func (p *barPlugin) Info() gdttypes.PluginInfo {
+	return gdttypes.PluginInfo{
 		Name: "bar",
 	}
 }
@@ -224,25 +226,27 @@ func (p *barPlugin) Specs() []gdttypes.Spec {
 func TestUnknownSpec(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&barPlugin{})
 
 	fp := filepath.Join("testdata", "foo-test.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
-	p := &barPlugin{}
-
-	plugin.Register(p)
-	defer plugin.Unregister(p)
-
-	s, err := scenario.FromReader(f, scenario.WithPath(fp))
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithPlugins(reg.List()),
+	)
 	assert.NotNil(err)
 	assert.Nil(s)
 }
 
 type fooPlugin struct{}
 
-func (p *fooPlugin) Info() plugin.PluginInfo {
-	return plugin.PluginInfo{
+func (p *fooPlugin) Info() gdttypes.PluginInfo {
+	return gdttypes.PluginInfo{
 		Name: "foo",
 	}
 }
@@ -258,17 +262,19 @@ func (p *fooPlugin) Specs() []gdttypes.Spec {
 func TestKnownSpec(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
 
 	fp := filepath.Join("testdata", "foo-test.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
-	p := &fooPlugin{}
-
-	plugin.Register(p)
-	defer plugin.Unregister(p)
-
-	s, err := scenario.FromReader(f, scenario.WithPath(fp))
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithPlugins(reg.List()),
+	)
 	assert.Nil(err)
 	assert.NotNil(s)
 

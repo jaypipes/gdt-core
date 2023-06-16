@@ -62,7 +62,7 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 			}
 			for idx, testNode := range valNode.Content {
 				parsed := false
-				for _, p := range s.plugins {
+				for _, p := range s.Plugins {
 					specs := p.Specs()
 					for _, sp := range specs {
 						if err := testNode.Decode(sp); err != nil {
