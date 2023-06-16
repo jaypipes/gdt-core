@@ -7,5 +7,5 @@ import "gopkg.in/yaml.v3"
 type Spec interface {
 	Runnable
 	yaml.Unmarshaler
-	SetNameAndDescription(*yaml.Node) error
+	SetBaseFields(*yaml.Node) error
 }

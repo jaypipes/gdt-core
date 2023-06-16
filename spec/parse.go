@@ -10,10 +10,10 @@ import (
 	"github.com/jaypipes/gdt-core/errors"
 )
 
-// SetNameAndDescription examines the mapping YAML node for a name and
-// description field and sets the associated Name/Description struct field from
-// that value node.
-func (s *Spec) SetNameAndDescription(node *yaml.Node) error {
+// SetBaseFields examines the mapping YAML node for a name and description
+// field and sets the associated Name/Description struct field from that value
+// node.
+func (s *Spec) SetBaseFields(node *yaml.Node) error {
 	if node.Kind != yaml.MappingNode {
 		return errors.ExpectedMapAt(node)
 	}
