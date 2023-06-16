@@ -5,9 +5,7 @@
 package scenario
 
 import (
-	"context"
 	gopath "path"
-	"testing"
 
 	"github.com/jaypipes/gdt-core/plugin"
 	gdttypes "github.com/jaypipes/gdt-core/types"
@@ -37,6 +35,15 @@ type Scenario struct {
 	// Tests is the collection of test units in this test case. These will be
 	// the fully parsed and materialized plugin Spec structs.
 	Tests []gdttypes.Runnable `yaml:"tests,omitempty"`
+}
+
+// Title returns the Name of the scenario or the Path's file/base name if there
+// is no name.
+func (s *Scenario) Title() string {
+	if s.Name != "" {
+		return s.Name
+	}
+	return gopath.Base(s.Path)
 }
 
 // ScenarioModifier sets some value on the test scenario
@@ -84,22 +91,4 @@ func New(mods ...ScenarioModifier) *Scenario {
 		mod(s)
 	}
 	return s
-}
-
-// Title returns the Name of the scenario or the Path's file/base name if there
-// is no name.
-func (s *Scenario) Title() string {
-	if s.Name != "" {
-		return s.Name
-	}
-	return gopath.Base(s.Path)
-}
-
-// Run executes the tests in the test case
-func (s *Scenario) Run(ctx context.Context, t *testing.T) {
-	t.Run(s.Title(), func(t *testing.T) {
-		for _, spec := range s.Tests {
-			spec.Run(ctx, t)
-		}
-	})
 }

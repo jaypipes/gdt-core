@@ -60,7 +60,7 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 			if valNode.Kind != yaml.SequenceNode {
 				return gdterrors.ExpectedSequenceAt(valNode)
 			}
-			for _, testNode := range valNode.Content {
+			for idx, testNode := range valNode.Content {
 				parsed := false
 				for _, p := range s.plugins {
 					specs := p.Specs()
@@ -71,7 +71,7 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 							}
 							return err
 						} else {
-							if err := sp.SetBaseFields(testNode); err != nil {
+							if err := sp.SetBaseFields(idx, testNode); err != nil {
 								return err
 							}
 							s.Tests = append(s.Tests, sp.(gdttypes.Runnable))

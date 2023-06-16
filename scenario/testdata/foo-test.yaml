@@ -7,4 +7,4 @@ tests:
   - foo: bar
     name: bar
   - foo: baz
-    description: bazzy
+    description: Bazzy Bizzy

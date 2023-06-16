@@ -51,8 +51,6 @@ type fooSpec struct {
 	Foo string `yaml:"foo"`
 }
 
-func (s *fooSpec) Run(context.Context, *testing.T) {}
-
 func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
 	if node.Kind != yaml.MappingNode {
 		return errors.ExpectedMapAt(node)
@@ -290,13 +288,15 @@ func TestKnownSpec(t *testing.T) {
 	expTests := []gdttypes.Runnable{
 		&fooSpec{
 			Spec: spec.Spec{
-				Name: "bar",
+				Index: 0,
+				Name:  "bar",
 			},
 			Foo: "bar",
 		},
 		&fooSpec{
 			Spec: spec.Spec{
-				Description: "bazzy",
+				Index:       1,
+				Description: "Bazzy Bizzy",
 			},
 			Foo: "baz",
 		},
