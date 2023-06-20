@@ -5,6 +5,7 @@
 package scenario
 
 import (
+	"context"
 	gopath "path"
 
 	gdttypes "github.com/jaypipes/gdt-core/types"
@@ -13,9 +14,11 @@ import (
 // Scenario is a generalized gdt test case file. It contains a set of Runnable
 // test units.
 type Scenario struct {
-	// Plugins is the list of plugins known to the scenario. This is injected
-	// during scenario file parsing.
-	Plugins []gdttypes.Plugin `yaml:"-"`
+	// ctx stores the context. Yes, I know this is not good practice and that a
+	// context should be passed as the first argument to all methods, but the
+	// `yaml.Unmarshaler` interface does not have a context argument and
+	// there's no other way to pass in necessary information.
+	ctx context.Context
 	// Path is the filepath to the test case.
 	Path string `yaml:"-"`
 	// Name is the short name for the test case. If empty, defaults to the base
@@ -83,10 +86,10 @@ func WithRequires(require []string) ScenarioModifier {
 	}
 }
 
-// WithPlugins sets a test scenario's Plugins attribute
-func WithPlugins(plugins []gdttypes.Plugin) ScenarioModifier {
+// WithContext sets a test scenario's context
+func WithContext(ctx context.Context) ScenarioModifier {
 	return func(s *Scenario) {
-		s.Plugins = plugins
+		s.ctx = ctx
 	}
 }
 

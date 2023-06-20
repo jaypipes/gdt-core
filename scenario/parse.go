@@ -7,6 +7,7 @@ package scenario
 import (
 	"errors"
 
+	"github.com/jaypipes/gdt-core/context"
 	gdterrors "github.com/jaypipes/gdt-core/errors"
 	gdtexec "github.com/jaypipes/gdt-core/exec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
@@ -71,7 +72,7 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 			for idx, testNode := range valNode.Content {
 				parsed := false
 				specs := coreSpecPrototypes()
-				for _, p := range s.Plugins {
+				for _, p := range context.Plugins(s.ctx) {
 					specs = append(specs, p.Specs()...)
 				}
 				for _, sp := range specs {

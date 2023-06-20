@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	gdtcontext "github.com/jaypipes/gdt-core/context"
 	"github.com/jaypipes/gdt-core/plugin"
 	"github.com/jaypipes/gdt-core/scenario"
 	"github.com/stretchr/testify/assert"
@@ -39,14 +40,19 @@ func TestRun(t *testing.T) {
 	f, err := os.Open(fp)
 	require.Nil(err)
 
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
 	s, err := scenario.FromReader(
 		f,
 		scenario.WithPath(fp),
-		scenario.WithPlugins(reg.List()),
+		scenario.WithContext(ctx),
 	)
 	require.Nil(err)
 	require.NotNil(s)
 
-	ctx := context.TODO()
 	s.Run(ctx, t)
 }

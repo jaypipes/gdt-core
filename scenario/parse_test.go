@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"testing"
 
+	gdtcontext "github.com/jaypipes/gdt-core/context"
 	"github.com/jaypipes/gdt-core/errors"
 	"github.com/jaypipes/gdt-core/plugin"
 	"github.com/jaypipes/gdt-core/scenario"
@@ -197,10 +198,16 @@ func TestFailingPlugin(t *testing.T) {
 	f, err := os.Open(fp)
 	require.Nil(err)
 
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
 	s, err := scenario.FromReader(
 		f,
 		scenario.WithPath(fp),
-		scenario.WithPlugins(reg.List()),
+		scenario.WithContext(ctx),
 	)
 	assert.NotNil(err)
 	assert.NotErrorIs(err, errors.ErrUnknownSpec)
@@ -234,10 +241,16 @@ func TestUnknownSpec(t *testing.T) {
 	f, err := os.Open(fp)
 	require.Nil(err)
 
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
 	s, err := scenario.FromReader(
 		f,
 		scenario.WithPath(fp),
-		scenario.WithPlugins(reg.List()),
+		scenario.WithContext(ctx),
 	)
 	assert.NotNil(err)
 	assert.Nil(s)
@@ -270,10 +283,16 @@ func TestKnownSpec(t *testing.T) {
 	f, err := os.Open(fp)
 	require.Nil(err)
 
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
 	s, err := scenario.FromReader(
 		f,
 		scenario.WithPath(fp),
-		scenario.WithPlugins(reg.List()),
+		scenario.WithContext(ctx),
 	)
 	assert.Nil(err)
 	assert.NotNil(s)
@@ -322,10 +341,16 @@ func TestMultipleSpec(t *testing.T) {
 	f, err := os.Open(fp)
 	require.Nil(err)
 
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
 	s, err := scenario.FromReader(
 		f,
 		scenario.WithPath(fp),
-		scenario.WithPlugins(reg.List()),
+		scenario.WithContext(ctx),
 	)
 	assert.Nil(err)
 	assert.NotNil(s)
