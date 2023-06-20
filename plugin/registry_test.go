@@ -28,7 +28,9 @@ type fooSpec struct {
 	Foo string `yaml:"foo"`
 }
 
-func (s *fooSpec) Run(context.Context, *testing.T) {}
+func (s *fooSpec) Run(context.Context, *testing.T) error {
+	return nil
+}
 
 func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
 	return nil

@@ -60,4 +60,6 @@ func slugify(s string) string {
 // NOTE(jaypipes): consider this a pure virtual function. Should not be
 // executed since the plugin-specific subclass should implement its own Run()
 // method.
-func (s *Spec) Run(ctx context.Context, t *testing.T) {}
+func (s *Spec) Run(ctx context.Context, t *testing.T) error {
+	return nil
+}

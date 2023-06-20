@@ -15,7 +15,7 @@ import (
 )
 
 // Run executes the specific exec test spec.
-func (s *ExecSpec) Run(ctx context.Context, t *testing.T) {
+func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
 	assert := assert.New(t)
 	require := require.New(t)
 
@@ -23,7 +23,7 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) {
 	if s.Shell == "" {
 		args, err := shlex.Split(s.Exec)
 		if err != nil {
-			t.Fatal(err)
+			return err
 		}
 		cmd = exec.Command(args[0], args[1:]...)
 	} else {
@@ -31,8 +31,13 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) {
 	}
 
 	outpipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
 	errpipe, err := cmd.StderrPipe()
-	require.Nil(err)
+	if err != nil {
+		return err
+	}
 
 	err = cmd.Start()
 	require.Nil(err)
@@ -49,4 +54,5 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) {
 		eerr, _ := err.(*exec.ExitError)
 		assert.Equal(s.ExitCode, eerr.ExitCode())
 	}
+	return nil
 }

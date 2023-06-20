@@ -21,25 +21,36 @@ var (
 // ContextModifier sets some value on the context
 type ContextModifier func(context.Context) context.Context
 
-// WithPath sets a context's Path attribute
+// WithPath sets a context's Path
 func WithPath(path string) ContextModifier {
 	return func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, pathKey, path)
 	}
 }
 
-// WithPlugins sets a context's Plugins attribute
+// WithPlugins sets a context's Plugins
 func WithPlugins(plugins []gdttypes.Plugin) ContextModifier {
 	return func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, pluginsKey, plugins)
 	}
 }
 
-// WithFixtures sets a context's Fixtures attribute
-func WithFixtures(fixtures []gdttypes.Fixture) ContextModifier {
+// WithFixtures sets a context's Fixtures
+func WithFixtures(fixtures map[string]gdttypes.Fixture) ContextModifier {
 	return func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, fixturesKey, fixtures)
 	}
+}
+
+// RegisterFixture registers a named fixtures with the context
+func RegisterFixture(
+	ctx context.Context,
+	name string,
+	f gdttypes.Fixture,
+) context.Context {
+	fixtures := Fixtures(ctx)
+	fixtures[name] = f
+	return context.WithValue(ctx, fixturesKey, fixtures)
 }
 
 // New returns a new Context

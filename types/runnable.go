@@ -13,5 +13,5 @@ import (
 // and a pointer to a testing.T. Example things that implement this interface
 // are `gdtcore.scenario.Scenario` and `gdtcore.suite.Suite`.
 type Runnable interface {
-	Run(context.Context, *testing.T)
+	Run(context.Context, *testing.T) error
 }

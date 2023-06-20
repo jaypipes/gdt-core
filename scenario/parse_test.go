@@ -33,7 +33,9 @@ type failSpec struct {
 	spec.Spec
 }
 
-func (s *failSpec) Run(context.Context, *testing.T) {}
+func (s *failSpec) Run(context.Context, *testing.T) error {
+	return nil
+}
 
 func (s *failSpec) UnmarshalYAML(node *yaml.Node) error {
 	return fmt.Errorf("Indy, bad dates!")
@@ -93,7 +95,9 @@ type barSpec struct {
 	Bar int `yaml:"bar"`
 }
 
-func (s *barSpec) Run(context.Context, *testing.T) {}
+func (s *barSpec) Run(context.Context, *testing.T) error {
+	return nil
+}
 
 func (s *barSpec) UnmarshalYAML(node *yaml.Node) error {
 	if node.Kind != yaml.MappingNode {
