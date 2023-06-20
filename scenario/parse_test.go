@@ -130,7 +130,7 @@ func TestNoPlugins(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	fp := filepath.Join("testdata", "foo-test.yaml")
+	fp := filepath.Join("testdata", "foo.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
@@ -193,7 +193,7 @@ func TestFailingPlugin(t *testing.T) {
 
 	reg.Add(&failingPlugin{})
 
-	fp := filepath.Join("testdata", "foo-test.yaml")
+	fp := filepath.Join("testdata", "foo.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
@@ -230,7 +230,7 @@ func TestUnknownSpec(t *testing.T) {
 
 	reg.Add(&barPlugin{})
 
-	fp := filepath.Join("testdata", "foo-test.yaml")
+	fp := filepath.Join("testdata", "foo.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
@@ -266,7 +266,7 @@ func TestKnownSpec(t *testing.T) {
 
 	reg.Add(&fooPlugin{})
 
-	fp := filepath.Join("testdata", "foo-test.yaml")
+	fp := filepath.Join("testdata", "foo.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
@@ -280,8 +280,8 @@ func TestKnownSpec(t *testing.T) {
 
 	assert.IsType(&scenario.Scenario{}, s)
 	sc := s.(*scenario.Scenario)
-	assert.Equal("foo-test", sc.Name)
-	assert.Equal(filepath.Join("testdata", "foo-test.yaml"), sc.Path)
+	assert.Equal("foo", sc.Name)
+	assert.Equal(filepath.Join("testdata", "foo.yaml"), sc.Path)
 	assert.Empty(sc.Require)
 	assert.Equal(
 		map[string]interface{}{
@@ -305,6 +305,47 @@ func TestKnownSpec(t *testing.T) {
 				Description: "Bazzy Bizzy",
 			},
 			Foo: "baz",
+		},
+	}
+	assert.Equal(expTests, sc.Tests)
+}
+
+func TestMultipleSpec(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
+	reg.Add(&barPlugin{})
+
+	fp := filepath.Join("testdata", "foo-bar.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithPlugins(reg.List()),
+	)
+	assert.Nil(err)
+	assert.NotNil(s)
+
+	assert.IsType(&scenario.Scenario{}, s)
+	sc := s.(*scenario.Scenario)
+	assert.Equal("foo-bar", sc.Name)
+	assert.Equal(filepath.Join("testdata", "foo-bar.yaml"), sc.Path)
+	expTests := []gdttypes.Runnable{
+		&fooSpec{
+			Spec: spec.Spec{
+				Index: 0,
+			},
+			Foo: "bar",
+		},
+		&barSpec{
+			Spec: spec.Spec{
+				Index: 1,
+			},
+			Bar: 42,
 		},
 	}
 	assert.Equal(expTests, sc.Tests)

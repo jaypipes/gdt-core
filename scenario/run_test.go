@@ -35,7 +35,7 @@ func TestRun(t *testing.T) {
 
 	reg.Add(&fooPlugin{})
 
-	fp := filepath.Join("testdata", "foo-test.yaml")
+	fp := filepath.Join("testdata", "foo.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 

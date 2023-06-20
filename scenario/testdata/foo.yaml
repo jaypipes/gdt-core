@@ -1,4 +1,4 @@
-name: foo-test
+name: foo
 description: a scenario with some foo test specs
 defaults:
   foo:
