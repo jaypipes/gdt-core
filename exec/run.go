@@ -7,16 +7,18 @@ package exec
 import (
 	"context"
 	"os/exec"
-	"strings"
 	"testing"
 
 	"github.com/google/shlex"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // Run executes the specific exec test spec.
 func (s *ExecSpec) Run(ctx context.Context, t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
+
 	var cmd *exec.Cmd
 	if s.Shell == "" {
 		args, err := shlex.Split(s.Exec)
@@ -27,38 +29,24 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) {
 	} else {
 		cmd = exec.Command(s.Shell, "-c", s.Exec)
 	}
-	var out strings.Builder
-	cmd.Stdout = &out
-	err := cmd.Run()
+
+	outpipe, err := cmd.StdoutPipe()
+	errpipe, err := cmd.StderrPipe()
+	require.Nil(err)
+
+	err = cmd.Start()
+	require.Nil(err)
+
+	if s.Out != nil {
+		s.Out.Assert(t, "stdout", outpipe)
+	}
+	if s.Err != nil {
+		s.Err.Assert(t, "stderr", errpipe)
+	}
+
+	err = cmd.Wait()
 	if err != nil {
 		eerr, _ := err.(*exec.ExitError)
 		assert.Equal(s.ExitCode, eerr.ExitCode())
-	}
-	if s.Out != nil {
-		// evaluate the pipe assertions on stdout
-		outContents := strings.TrimSpace(out.String())
-		if s.Out.Is != nil {
-			assert.Equal(*s.Out.Is, outContents)
-		}
-		if len(s.Out.Contains) > 0 {
-			for _, find := range s.Out.Contains {
-				assert.Contains(outContents, find)
-			}
-		}
-		if len(s.Out.ContainsOneOf) > 0 {
-			found := false
-			for _, find := range s.Out.ContainsOneOf {
-				if idx := strings.Index(outContents, find); idx > -1 {
-					found = true
-					break
-				}
-			}
-			if !found {
-				assert.Fail(
-					"expected to find one of %s in stdout.",
-					s.Out.ContainsOneOf,
-				)
-			}
-		}
 	}
 }

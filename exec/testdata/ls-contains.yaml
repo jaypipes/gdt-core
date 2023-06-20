@@ -5,3 +5,10 @@ tests:
     out:
       contains:
        - parse.go
+  # To test the stderr assertions, we redirect stdout to stderr in a shell
+  # command...
+  - exec: "ls -l 1>&2"
+    shell: sh
+    err:
+      contains:
+        - parse.go

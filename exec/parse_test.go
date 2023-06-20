@@ -39,7 +39,7 @@ func TestSimpleCommand(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	fp := filepath.Join("testdata", "ls-test.yaml")
+	fp := filepath.Join("testdata", "ls.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 

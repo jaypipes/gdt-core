@@ -4,3 +4,9 @@ tests:
   - exec: echo "cat"
     out:
       is: cat
+  # To test the stderr assertions, we redirect stdout to stderr in a shell
+  # command...
+  - exec: "echo cat 1>&2"
+    shell: sh
+    err:
+      is: cat

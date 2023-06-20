@@ -8,19 +8,6 @@ import (
 	"github.com/jaypipes/gdt-core/spec"
 )
 
-// PipeAssertions contains assertions about the contents of a pipe
-type PipeAssertions struct {
-	// Is contains the exact match (minus whitespace) of the contents of the
-	// pipe
-	Is *string `yaml:"is,omitempty"`
-	// Contains is one or more strings that *all* must be present in the
-	// contents of the pipe
-	Contains []string `yaml:"contains,omitempty"`
-	// ContainsOneOf is one or more strings of which *at least one* must be
-	// present in the contents of the pipe
-	ContainsOneOf []string `yaml:"contains_one_of,omitempty"`
-}
-
 // ExecSpec describes a single Spec that executes one or more commands via the
 // operating system's `exec` family of functions.
 type ExecSpec struct {
@@ -42,4 +29,6 @@ type ExecSpec struct {
 	ExitCode int `yaml:"exit_code,omitempty"`
 	// Out has things that are expected in the stdout response
 	Out *PipeAssertions `yaml:"out,omitempty"`
+	// Err has things that are expected in the stderr response
+	Err *PipeAssertions `yaml:"err,omitempty"`
 }

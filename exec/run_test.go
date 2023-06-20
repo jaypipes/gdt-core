@@ -8,6 +8,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/jaypipes/gdt-core/scenario"
@@ -17,7 +18,7 @@ import (
 func TestNoExitCodeSimpleCommand(t *testing.T) {
 	require := require.New(t)
 
-	fp := filepath.Join("testdata", "ls-test.yaml")
+	fp := filepath.Join("testdata", "ls.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
@@ -35,7 +36,13 @@ func TestNoExitCodeSimpleCommand(t *testing.T) {
 func TestExitCode(t *testing.T) {
 	require := require.New(t)
 
-	fp := filepath.Join("testdata", "ls-with-exit-code-test.yaml")
+	fname := "ls-with-exit-code.yaml"
+	// Yay, different exit codes for the same not found error...
+	if runtime.GOOS == "darwin" {
+		fname = "mac-ls-with-exit-code.yaml"
+	}
+
+	fp := filepath.Join("testdata", fname)
 	f, err := os.Open(fp)
 	require.Nil(err)
 
@@ -68,7 +75,7 @@ func TestShellList(t *testing.T) {
 	s.Run(ctx, t)
 }
 
-func TestOutIs(t *testing.T) {
+func TestIs(t *testing.T) {
 	require := require.New(t)
 
 	fp := filepath.Join("testdata", "echo-cat.yaml")
@@ -86,7 +93,7 @@ func TestOutIs(t *testing.T) {
 	s.Run(ctx, t)
 }
 
-func TestOutContains(t *testing.T) {
+func TestContains(t *testing.T) {
 	require := require.New(t)
 
 	fp := filepath.Join("testdata", "ls-contains.yaml")
@@ -104,7 +111,7 @@ func TestOutContains(t *testing.T) {
 	s.Run(ctx, t)
 }
 
-func TestOutContainsOneOf(t *testing.T) {
+func TestContainsOneOf(t *testing.T) {
 	require := require.New(t)
 
 	fp := filepath.Join("testdata", "ls-contains-one-of.yaml")

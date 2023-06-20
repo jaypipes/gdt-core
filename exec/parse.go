@@ -63,11 +63,20 @@ func (s *ExecSpec) UnmarshalYAML(node *yaml.Node) error {
 			if valNode.Kind != yaml.MappingNode {
 				return errors.ExpectedMapAt(valNode)
 			}
-			var out *PipeAssertions
-			if err := valNode.Decode(&out); err != nil {
+			var pa *PipeAssertions
+			if err := valNode.Decode(&pa); err != nil {
 				return err
 			}
-			s.Out = out
+			s.Out = pa
+		case "err":
+			if valNode.Kind != yaml.MappingNode {
+				return errors.ExpectedMapAt(valNode)
+			}
+			var pa *PipeAssertions
+			if err := valNode.Decode(&pa); err != nil {
+				return err
+			}
+			s.Err = pa
 		case "name", "description":
 			continue
 		default:
