@@ -1,0 +1,45 @@
+// Use and distribution licensed under the Apache license version 2.
+//
+// See the COPYING file in the root project directory for full text.
+
+package exec
+
+import (
+	"github.com/jaypipes/gdt-core/spec"
+)
+
+// PipeAssertions contains assertions about the contents of a pipe
+type PipeAssertions struct {
+	// Is contains the exact match (minus whitespace) of the contents of the
+	// pipe
+	Is *string `yaml:"is,omitempty"`
+	// Contains is one or more strings that *all* must be present in the
+	// contents of the pipe
+	Contains []string `yaml:"contains,omitempty"`
+	// ContainsOneOf is one or more strings of which *at least one* must be
+	// present in the contents of the pipe
+	ContainsOneOf []string `yaml:"contains_one_of,omitempty"`
+}
+
+// ExecSpec describes a single Spec that executes one or more commands via the
+// operating system's `exec` family of functions.
+type ExecSpec struct {
+	spec.Spec
+	// Exec is the exact command to execute.
+	//
+	// You may execute more than one command but must include the `shell` field
+	// to indicate that the command should be run in a shell. It is best
+	// practice, however, to simply use multiple `exec` specs instead of
+	// executing multiple commands in a single shell call.
+	Exec string `yaml:"exec"`
+	// Shell is the specific shell to use in executing the command. If empty
+	// (the default), no shell is used to execute the command and instead the
+	// operating system's `exec` family of calls is used.
+	Shell string `yaml:"shell,omitempty"`
+	// ExitCode is the expected exit code for the executed command. The default
+	// (0) is the universal successful exit code, so you only need to set this
+	// if you expect a non-successful result from executing the command.
+	ExitCode int `yaml:"exit_code,omitempty"`
+	// Out has things that are expected in the stdout response
+	Out *PipeAssertions `yaml:"out,omitempty"`
+}

@@ -8,9 +8,17 @@ import (
 	"errors"
 
 	gdterrors "github.com/jaypipes/gdt-core/errors"
+	gdtexec "github.com/jaypipes/gdt-core/exec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"gopkg.in/yaml.v3"
 )
+
+// coreSpecPrototypes returns a slice of known non-plugin Spec types
+func coreSpecPrototypes() []gdttypes.Spec {
+	return []gdttypes.Spec{
+		&gdtexec.ExecSpec{},
+	}
+}
 
 // UnmarshalYAML is a custom unmarshaler that asks plugins for their known spec
 // types and attempts to unmarshal test spec contents into those types.
@@ -62,24 +70,22 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 			}
 			for idx, testNode := range valNode.Content {
 				parsed := false
+				specs := coreSpecPrototypes()
 				for _, p := range s.Plugins {
-					specs := p.Specs()
-					for _, sp := range specs {
-						if err := testNode.Decode(sp); err != nil {
-							if errors.Is(err, gdterrors.ErrUnknownField) {
-								continue
-							}
-							return err
-						} else {
-							if err := sp.SetBaseFields(idx, testNode); err != nil {
-								return err
-							}
-							s.Tests = append(s.Tests, sp.(gdttypes.Runnable))
-							parsed = true
-							break
+					specs = append(specs, p.Specs()...)
+				}
+				for _, sp := range specs {
+					if err := testNode.Decode(sp); err != nil {
+						if errors.Is(err, gdterrors.ErrUnknownField) {
+							continue
 						}
-					}
-					if parsed {
+						return err
+					} else {
+						if err := sp.SetBaseFields(idx, testNode); err != nil {
+							return err
+						}
+						s.Tests = append(s.Tests, sp.(gdttypes.Runnable))
+						parsed = true
 						break
 					}
 				}

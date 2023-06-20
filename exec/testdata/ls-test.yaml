@@ -1,0 +1,4 @@
+name: ls-test
+description: a scenario that runs the `ls` command
+tests:
+  - exec: ls

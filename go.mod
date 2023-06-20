@@ -3,6 +3,7 @@ module github.com/jaypipes/gdt-core
 go 1.19
 
 require (
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/samber/lo v1.38.1
 	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v3 v3.0.1
