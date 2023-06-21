@@ -52,7 +52,7 @@ func TestSimpleCommand(t *testing.T) {
 
 	assert.IsType(&scenario.Scenario{}, s)
 	sc := s.(*scenario.Scenario)
-	expTests := []gdttypes.Runnable{
+	expTests := []gdttypes.Spec{
 		&gdtexec.ExecSpec{
 			Spec: spec.Spec{
 				Index: 0,

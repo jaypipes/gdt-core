@@ -263,6 +263,32 @@ func TestUnknownSpec(t *testing.T) {
 	assert.Nil(s)
 }
 
+func TestBadTimeoutDuration(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
+
+	fp := filepath.Join("testdata", "bad-timeout.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithContext(ctx),
+	)
+	assert.ErrorContains(err, "invalid duration")
+	assert.Nil(s)
+}
+
 type fooPlugin struct{}
 
 func (p *fooPlugin) Info() gdttypes.PluginInfo {
@@ -317,7 +343,7 @@ func TestKnownSpec(t *testing.T) {
 		},
 		sc.Defaults,
 	)
-	expTests := []gdttypes.Runnable{
+	expTests := []gdttypes.Spec{
 		&fooSpec{
 			Spec: spec.Spec{
 				Index: 0,
@@ -366,7 +392,7 @@ func TestMultipleSpec(t *testing.T) {
 	sc := s.(*scenario.Scenario)
 	assert.Equal("foo-bar", sc.Name)
 	assert.Equal(filepath.Join("testdata", "foo-bar.yaml"), sc.Path)
-	expTests := []gdttypes.Runnable{
+	expTests := []gdttypes.Spec{
 		&fooSpec{
 			Spec: spec.Spec{
 				Index: 0,

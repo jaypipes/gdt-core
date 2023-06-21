@@ -5,6 +5,8 @@
 package spec
 
 import (
+	"time"
+
 	"gopkg.in/yaml.v3"
 
 	"github.com/jaypipes/gdt-core/errors"
@@ -41,6 +43,15 @@ func (s *Spec) SetBaseFields(
 				return errors.ExpectedScalarAt(valNode)
 			}
 			s.Description = valNode.Value
+		case "timeout":
+			if valNode.Kind != yaml.ScalarNode {
+				return errors.ExpectedScalarAt(valNode)
+			}
+			_, err := time.ParseDuration(valNode.Value)
+			if err != nil {
+				return err
+			}
+			s.Timeout = valNode.Value
 		}
 	}
 	return nil

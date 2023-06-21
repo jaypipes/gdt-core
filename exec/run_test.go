@@ -128,3 +128,21 @@ func TestContainsOneOf(t *testing.T) {
 	ctx := context.TODO()
 	s.Run(ctx, t)
 }
+
+func TestSleepTimeout(t *testing.T) {
+	require := require.New(t)
+
+	fp := filepath.Join("testdata", "sleep-timeout.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+	)
+	require.Nil(err)
+	require.NotNil(s)
+
+	ctx := context.TODO()
+	s.Run(ctx, t)
+}

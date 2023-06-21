@@ -25,9 +25,9 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
 		if err != nil {
 			return err
 		}
-		cmd = exec.Command(args[0], args[1:]...)
+		cmd = exec.CommandContext(ctx, args[0], args[1:]...)
 	} else {
-		cmd = exec.Command(s.Shell, "-c", s.Exec)
+		cmd = exec.CommandContext(ctx, s.Shell, "-c", s.Exec)
 	}
 
 	outpipe, err := cmd.StdoutPipe()

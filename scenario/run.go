@@ -31,6 +31,11 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 	errs := gdterrors.NewRuntimeErrors()
 	t.Run(s.Title(), func(t *testing.T) {
 		for _, spec := range s.Tests {
+			if spec.HasTimeout() {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, spec.TimeoutDuration())
+				defer cancel()
+			}
 			err := spec.Run(ctx, t)
 			if res, ok := err.(*result.Result); ok {
 				// Results can have arbitrary run data stored in them and we

@@ -85,7 +85,7 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 						if err := sp.SetBaseFields(idx, testNode); err != nil {
 							return err
 						}
-						s.Tests = append(s.Tests, sp.(gdttypes.Runnable))
+						s.Tests = append(s.Tests, sp)
 						parsed = true
 						break
 					}
