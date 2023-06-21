@@ -53,6 +53,22 @@ func RegisterFixture(
 	return context.WithValue(ctx, fixturesKey, fixtures)
 }
 
+// RegisterPlugin registers a plugin with the context
+func RegisterPlugin(
+	ctx context.Context,
+	p gdttypes.Plugin,
+) context.Context {
+	plugins := Plugins(ctx)
+	for _, plug := range plugins {
+		if plug.Info().Name == p.Info().Name {
+			// No need to register... already known.
+			return ctx
+		}
+	}
+	plugins = append(plugins, p)
+	return context.WithValue(ctx, pluginsKey, plugins)
+}
+
 // New returns a new Context
 func New(mods ...ContextModifier) context.Context {
 	ctx := context.TODO()
