@@ -12,9 +12,15 @@ import (
 )
 
 var (
+	// ErrRuntime is the base error class for all errors occurring during
+	// runtime (and not during the parsing of a scenario or spec)
+	ErrRuntime = errors.New("runtime error")
 	// ErrRequiredFixture is returned when a required fixture has not
 	// been registered with the context.
-	ErrRequiredFixture = errors.New("required fixture missing")
+	ErrRequiredFixture = fmt.Errorf(
+		"%w: required fixture missing",
+		ErrRuntime,
+	)
 )
 
 // RequiredFixtureMissing returns an ErrRequiredFixture with the supplied

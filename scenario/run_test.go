@@ -86,5 +86,6 @@ func TestMissingFixtures(t *testing.T) {
 
 	err = s.Run(ctx, t)
 	assert.NotNil(err)
+	assert.ErrorIs(err, gdterrors.ErrRuntime)
 	assert.ErrorIs(err, gdterrors.ErrRequiredFixture)
 }
