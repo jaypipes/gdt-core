@@ -18,6 +18,7 @@ import (
 	"github.com/jaypipes/gdt-core/scenario"
 	"github.com/jaypipes/gdt-core/spec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
@@ -102,9 +103,10 @@ func (s *priorRunSpec) UnmarshalYAML(node *yaml.Node) error {
 				return errors.ExpectedScalarAt(valNode)
 			}
 			s.Prior = valNode.Value
-		case "name", "description":
-			continue
 		default:
+			if lo.Contains(spec.BaseFields, key) {
+				continue
+			}
 			return errors.UnknownFieldAt(key, keyNode)
 		}
 	}

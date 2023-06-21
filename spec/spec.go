@@ -11,6 +11,16 @@ import (
 	"testing"
 )
 
+var (
+	// BaseFields is a list of the field names that specializations of the Spec
+	// struct don't need to parse. These are the lower_snake_cased versions
+	// that are expected in the YAML definitions.
+	BaseFields = []string{
+		"name",
+		"description",
+	}
+)
+
 // Spec represents a single test action and one or more assertions about
 // output or behaviour. All gdt plugins have their own Spec structs that
 // inherit from this base struct.

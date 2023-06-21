@@ -13,6 +13,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/jaypipes/gdt-core/errors"
+	"github.com/jaypipes/gdt-core/spec"
+	"github.com/samber/lo"
 )
 
 // errUnknownShell returns a wrapped version of ErrInvalid that indicates the
@@ -77,9 +79,10 @@ func (s *ExecSpec) UnmarshalYAML(node *yaml.Node) error {
 				return err
 			}
 			s.Err = pa
-		case "name", "description":
-			continue
 		default:
+			if lo.Contains(spec.BaseFields, key) {
+				continue
+			}
 			return errors.UnknownFieldAt(key, keyNode)
 		}
 	}
