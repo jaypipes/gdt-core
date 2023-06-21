@@ -10,12 +10,12 @@ import (
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
-type gdtContextKey string
+type ContextKey string
 
 var (
-	pathKey     = gdtContextKey("gdt.path")
-	pluginsKey  = gdtContextKey("gdt.plugins")
-	fixturesKey = gdtContextKey("gdt.fixtures")
+	pathKey     = ContextKey("gdt.path")
+	pluginsKey  = ContextKey("gdt.plugins")
+	fixturesKey = ContextKey("gdt.fixtures")
 )
 
 // ContextModifier sets some value on the context
