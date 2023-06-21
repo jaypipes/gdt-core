@@ -8,25 +8,19 @@ import (
 	"context"
 
 	gdttypes "github.com/jaypipes/gdt-core/types"
+	"github.com/samber/lo"
 )
 
 type ContextKey string
 
 var (
-	pathKey     = ContextKey("gdt.path")
 	pluginsKey  = ContextKey("gdt.plugins")
 	fixturesKey = ContextKey("gdt.fixtures")
+	priorRunKey = ContextKey("gdt.run.prior")
 )
 
 // ContextModifier sets some value on the context
 type ContextModifier func(context.Context) context.Context
-
-// WithPath sets a context's Path
-func WithPath(path string) ContextModifier {
-	return func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, pathKey, path)
-	}
-}
 
 // WithPlugins sets a context's Plugins
 func WithPlugins(plugins []gdttypes.Plugin) ContextModifier {
@@ -67,6 +61,18 @@ func RegisterPlugin(
 	}
 	plugins = append(plugins, p)
 	return context.WithValue(ctx, pluginsKey, plugins)
+}
+
+// StorePriorRun saves prior run data in the context. If there is already prior
+// run data cached in the supplied context, the existing data is merged with
+// the supplied data.
+func StorePriorRun(
+	ctx context.Context,
+	data map[string]interface{},
+) context.Context {
+	existing := PriorRun(ctx)
+	merged := lo.Assign(existing, data)
+	return context.WithValue(ctx, priorRunKey, merged)
 }
 
 // New returns a new Context

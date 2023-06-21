@@ -10,17 +10,6 @@ import (
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
-// Path gets a context's Path
-func Path(ctx context.Context) string {
-	if ctx == nil {
-		return ""
-	}
-	if v := ctx.Value(pathKey); v != nil {
-		return v.(string)
-	}
-	return ""
-}
-
 // Plugins gets a context's Plugins
 func Plugins(ctx context.Context) []gdttypes.Plugin {
 	if ctx == nil {
@@ -41,4 +30,15 @@ func Fixtures(ctx context.Context) map[string]gdttypes.Fixture {
 		return v.(map[string]gdttypes.Fixture)
 	}
 	return map[string]gdttypes.Fixture{}
+}
+
+// PriorRun gets a context's prior run data
+func PriorRun(ctx context.Context) map[string]interface{} {
+	if ctx == nil {
+		return map[string]interface{}{}
+	}
+	if v := ctx.Value(priorRunKey); v != nil {
+		return v.(map[string]interface{})
+	}
+	return map[string]interface{}{}
 }

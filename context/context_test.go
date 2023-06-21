@@ -58,11 +58,8 @@ func (p *fooPlugin) Specs() []gdttypes.Spec {
 func TestContext(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx := gdtcontext.New(
-		gdtcontext.WithPath("/some/path"),
-	)
+	ctx := gdtcontext.New()
 
-	assert.Equal("/some/path", gdtcontext.Path(ctx))
 	assert.Empty(gdtcontext.Plugins(ctx))
 	assert.Empty(gdtcontext.Fixtures(ctx))
 
