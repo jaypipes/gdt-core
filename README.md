@@ -1,4 +1,4 @@
-# Go Declarative Testing - Core ![go test workflow](https://github.com/jaypipes/gdt-core/actions/workflows/gate-tests.yml/badge.svg)
+# Go Declarative Testing - Core ![go test workflow](https://github.com/jaypipes/gdt-core/actions/workflows/gate-tests.yml/badge.svg) [![Go Reference](https://pkg.go.dev/badge/github.com/jaypipes/gdt-core.svg)](https://pkg.go.dev/github.com/jaypipes/gdt-core)
 
 [`gdt`][gdt] is a testing library that allows test authors to cleanly describe tests
 in a YAML file. `gdt` reads YAML files that describe a test's assertions and
