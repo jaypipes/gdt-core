@@ -6,18 +6,17 @@ package exec
 
 import (
 	"context"
+	"errors"
 	"os/exec"
 	"testing"
 
 	"github.com/google/shlex"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // Run executes the specific exec test spec.
 func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
 	assert := assert.New(t)
-	require := require.New(t)
 
 	var cmd *exec.Cmd
 	if s.Shell == "" {
@@ -40,7 +39,13 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
 	}
 
 	err = cmd.Start()
-	require.Nil(err)
+	if err != nil {
+		if s.HasTimeout() && errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("test runtime exceeded timeout of %s", s.Timeout)
+		} else {
+			return err
+		}
+	}
 
 	if s.Out != nil {
 		s.Out.Assert(t, "stdout", outpipe)
