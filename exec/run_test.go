@@ -132,7 +132,13 @@ func TestContainsOneOf(t *testing.T) {
 func TestSleepTimeout(t *testing.T) {
 	require := require.New(t)
 
-	fp := filepath.Join("testdata", "sleep-timeout.yaml")
+	// Yay, different exit codes when context-interruption for the
+	// os/exec.Cmd.Wait() on different platforms
+	fname := "sleep-timeout.yaml"
+	if runtime.GOOS == "windows" {
+		fname = "windows-sleep-timeout.yaml"
+	}
+	fp := filepath.Join("testdata", fname)
 	f, err := os.Open(fp)
 	require.Nil(err)
 
