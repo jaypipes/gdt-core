@@ -263,7 +263,7 @@ func TestUnknownSpec(t *testing.T) {
 	assert.Nil(s)
 }
 
-func TestBadTimeoutDuration(t *testing.T) {
+func TestBadTimeout(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	reg := plugin.NewRegistry()
@@ -271,6 +271,32 @@ func TestBadTimeoutDuration(t *testing.T) {
 	reg.Add(&fooPlugin{})
 
 	fp := filepath.Join("testdata", "bad-timeout.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithContext(ctx),
+	)
+	assert.ErrorIs(err, errors.ErrInvalidExpectedMap)
+	assert.Nil(s)
+}
+
+func TestBadTimeoutDuration(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
+
+	fp := filepath.Join("testdata", "bad-timeout-duration.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 

@@ -5,8 +5,6 @@
 package types
 
 import (
-	"time"
-
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,10 +22,6 @@ type Spec interface {
 	// slugified version of the Description, if present, falling back to the
 	// Spec index if neither Name or Description are present.
 	Title() string
-	// HasTimeout returns true if the Spec has a timeout specified, false
-	// otherwise
-	HasTimeout() bool
-	// TimeoutDuration returns a `time.Duration` that the Spec should complete
-	// by.
-	TimeoutDuration() time.Duration
+	// Timeout returns the timeout information for a Spec.
+	Timeout() *Timeout
 }

@@ -6,12 +6,14 @@ package exec
 
 import (
 	"context"
-	"errors"
 	"os/exec"
 	"testing"
 
 	"github.com/google/shlex"
 	"github.com/stretchr/testify/assert"
+
+	gdtcontext "github.com/jaypipes/gdt-core/context"
+	gdterrors "github.com/jaypipes/gdt-core/errors"
 )
 
 // Run executes the specific exec test spec.
@@ -39,12 +41,11 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
 	}
 
 	err = cmd.Start()
+	if gdtcontext.TimedOut(ctx, err) {
+		return gdterrors.ErrTimeout
+	}
 	if err != nil {
-		if s.HasTimeout() && errors.Is(err, context.DeadlineExceeded) {
-			t.Fatalf("test runtime exceeded timeout of %s", s.Timeout)
-		} else {
-			return err
-		}
+		return err
 	}
 
 	if s.Out != nil {
@@ -55,9 +56,13 @@ func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
 	}
 
 	err = cmd.Wait()
+	if gdtcontext.TimedOut(ctx, err) {
+		return gdterrors.ErrTimeout
+	}
 	if err != nil {
 		eerr, _ := err.(*exec.ExitError)
 		assert.Equal(s.ExitCode, eerr.ExitCode())
+		return err
 	}
 	return nil
 }

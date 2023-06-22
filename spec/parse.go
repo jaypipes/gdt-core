@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/jaypipes/gdt-core/errors"
+	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 // SetBaseFields sets the index for the Spec and examines the mapping YAML node
@@ -44,14 +45,18 @@ func (s *Spec) SetBaseFields(
 			}
 			s.Description = valNode.Value
 		case "timeout":
-			if valNode.Kind != yaml.ScalarNode {
-				return errors.ExpectedScalarAt(valNode)
+			if valNode.Kind != yaml.MappingNode {
+				return errors.ExpectedMapAt(valNode)
 			}
-			_, err := time.ParseDuration(valNode.Value)
+			var to *gdttypes.Timeout
+			if err := valNode.Decode(&to); err != nil {
+				return errors.ExpectedTimeoutAt(valNode)
+			}
+			_, err := time.ParseDuration(to.After)
 			if err != nil {
 				return err
 			}
-			s.Timeout = valNode.Value
+			s.timeout = to
 		}
 	}
 	return nil

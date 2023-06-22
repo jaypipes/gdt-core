@@ -40,6 +40,11 @@ var (
 	ErrInvalidExpectedInt = fmt.Errorf(
 		"%w: expected int value", ErrInvalid,
 	)
+	// ErrInvalidTimeout indicates that the timeout specification was not
+	// valid.
+	ErrInvalidExpectedTimeout = fmt.Errorf(
+		"%w: expected timeout specification", ErrInvalid,
+	)
 )
 
 // UnknownSpecAt returns an ErrUnknownSpec with the line/column of the supplied
@@ -93,5 +98,14 @@ func ExpectedIntAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
 		ErrInvalidExpectedInt, node.Line, node.Column,
+	)
+}
+
+// ExpectedTimeoutAt returns an ErrInvalidExpectedTimeout error annotated
+// with the line/column of the supplied YAML node.
+func ExpectedTimeoutAt(node *yaml.Node) error {
+	return fmt.Errorf(
+		"%w at line %d, column %d",
+		ErrInvalidExpectedTimeout, node.Line, node.Column,
 	)
 }

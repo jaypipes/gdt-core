@@ -31,12 +31,18 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 	errs := gdterrors.NewRuntimeErrors()
 	t.Run(s.Title(), func(t *testing.T) {
 		for _, spec := range s.Tests {
-			if spec.HasTimeout() {
+			to := spec.Timeout()
+			if to != nil {
 				var cancel context.CancelFunc
-				ctx, cancel = context.WithTimeout(ctx, spec.TimeoutDuration())
+				ctx, cancel = context.WithTimeout(ctx, to.Duration())
 				defer cancel()
 			}
 			err := spec.Run(ctx, t)
+			if to != nil {
+				if !to.Expected && gdtcontext.TimedOut(ctx, err) {
+					t.Fatalf("test runtime exceeded timeout of %s", to.After)
+				}
+			}
 			if res, ok := err.(*result.Result); ok {
 				// Results can have arbitrary run data stored in them and we
 				// save this prior run data in the context (and pass that

@@ -21,6 +21,13 @@ var (
 		"%w: required fixture missing",
 		ErrRuntime,
 	)
+	// ErrTimeout is returned when a context deadline was exceeeded, a signal
+	// was killed in an exec.Spec.Run() call or an expected test spec did not
+	// complete in some allocated amount of time.
+	ErrTimeout = fmt.Errorf(
+		"%w: timeout exceeded",
+		ErrRuntime,
+	)
 )
 
 // RequiredFixtureMissing returns an ErrRequiredFixture with the supplied

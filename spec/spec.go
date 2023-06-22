@@ -9,7 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
+
+	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 var (
@@ -33,10 +34,13 @@ type Spec struct {
 	Name string `yaml:"name,omitempty"`
 	// Description of the test unit
 	Description string `yaml:"description,omitempty"`
-	// Timeout is the amount of time that the test unit should complete within.
-	// Specify a duration using Go's time duration string.
-	// See https://pkg.go.dev/time#ParseDuration
-	Timeout string `yaml:"timeout,omitempty"`
+	// timeout contains the timeout configuration for the Spec
+	timeout *gdttypes.Timeout `yaml:"timeout,omitempty"`
+}
+
+// Timeout returns the Spec's timeout information
+func (s *Spec) Timeout() *gdttypes.Timeout {
+	return s.timeout
 }
 
 // Title returns the Name of the scenario or the Path's file/base name if there
@@ -49,20 +53,6 @@ func (s *Spec) Title() string {
 		return slugify(s.Description)
 	}
 	return strconv.Itoa(s.Index)
-}
-
-// HasTimeout returns true if the spec has a non-zero timeout duration
-func (s *Spec) HasTimeout() bool {
-	return s.Timeout != ""
-}
-
-// TimeoutDuration returns the duration the spec should execute before timing
-// out
-func (s *Spec) TimeoutDuration() time.Duration {
-	// Parsing already validated the timeout string so no need to check again
-	// here
-	dur, _ := time.ParseDuration(s.Timeout)
-	return dur
 }
 
 // slugify returns a new string that lowercases and removes spaces and forward
