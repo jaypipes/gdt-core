@@ -1,0 +1,75 @@
+// Use and distribution licensed under the Apache license version 2.
+//
+// See the COPYING file in the root project directory for full text.
+
+package fixture
+
+import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
+	"strconv"
+
+	"github.com/PaesslerAG/jsonpath"
+	gdttypes "github.com/jaypipes/gdt-core/types"
+)
+
+type jsonFixture struct {
+	data interface{}
+}
+
+func (f *jsonFixture) Start() {}
+
+func (f *jsonFixture) Stop() {}
+
+// HasState returns true if the supplied JSONPath expression results in a found
+// value in the fixture's data
+func (f *jsonFixture) HasState(path string) bool {
+	if f.data == nil {
+		return false
+	}
+	got, err := jsonpath.Get(path, f.data)
+	if err != nil {
+		return false
+	}
+	if got == nil {
+		return false
+	}
+	return true
+}
+
+// GetState returns the value at supplied JSONPath expression or nil if the
+// JSONPath expression does not result in any matched field
+func (f *jsonFixture) State(path string) interface{} {
+	if f.data == nil {
+		return nil
+	}
+	got, err := jsonpath.Get(path, f.data)
+	if err != nil {
+		return nil
+	}
+	switch got.(type) {
+	case string:
+		return got.(string)
+	case float64:
+		return strconv.FormatFloat(got.(float64), 'f', 0, 64)
+	default:
+		return nil
+	}
+}
+
+// JSON takes an io.Reader and returns a new gdttypes.Fixture that can have its
+// data queried via JSONPath
+func JSON(r io.Reader) (gdttypes.Fixture, error) {
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	f := jsonFixture{
+		data: interface{}(nil),
+	}
+	if err = json.Unmarshal(b, &f.data); err != nil {
+		return nil, err
+	}
+	return &f, nil
+}
