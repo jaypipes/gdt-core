@@ -52,10 +52,10 @@ var (
 
 // UnknownSpecAt returns an ErrUnknownSpec with the line/column of the supplied
 // YAML node.
-func UnknownSpecAt(node *yaml.Node) error {
+func UnknownSpecAt(path string, node *yaml.Node) error {
 	return fmt.Errorf(
-		"%w at line %d, column %d",
-		ErrUnknownSpec, node.Line, node.Column,
+		"%w in %s at line %d, column %d",
+		ErrUnknownSpec, path, node.Line, node.Column,
 	)
 }
 

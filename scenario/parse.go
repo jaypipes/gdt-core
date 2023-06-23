@@ -91,7 +91,7 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 					}
 				}
 				if !parsed {
-					return gdterrors.UnknownSpecAt(valNode)
+					return gdterrors.UnknownSpecAt(s.Path, valNode)
 				}
 			}
 		}
