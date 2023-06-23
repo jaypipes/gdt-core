@@ -46,7 +46,11 @@ func FromDir(
 			}
 			defer f.Close()
 
-			tc, err := scenario.FromReader(f, scenario.WithPath(path))
+			tc, err := scenario.FromReader(
+				f,
+				scenario.WithPath(path),
+				scenario.WithContext(s.ctx),
+			)
 			if err != nil {
 				return err
 			}
