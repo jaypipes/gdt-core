@@ -5,12 +5,19 @@
 package suite
 
 import (
+	"context"
+
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 // Suite contains zero or more Runnable things, one for each YAML file
 // representing a Scenario in a given directory
 type Suite struct {
+	// ctx stores the context. Yes, I know this is not good practice and that a
+	// context should be passed as the first argument to all methods, but the
+	// `yaml.Unmarshaler` interface does not have a context argument and
+	// there's no other way to pass in necessary information.
+	ctx context.Context
 	// Path is the filepath to the test suite directory.
 	Path string `yaml:"-"`
 	// Name is the short name for the test suite. If empty, defaults to Path.
@@ -65,6 +72,13 @@ func WithDefaults(defaults map[string]interface{}) SuiteModifier {
 func WithRequires(require []string) SuiteModifier {
 	return func(s *Suite) {
 		s.Require = require
+	}
+}
+
+// WithContext sets a test scenario's context
+func WithContext(ctx context.Context) SuiteModifier {
+	return func(s *Suite) {
+		s.ctx = ctx
 	}
 }
 
