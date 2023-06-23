@@ -17,8 +17,11 @@ var (
 )
 
 // FromDir reads the supplied directory path and returns a Suite representing
-// the suite of test cases in that directory.
+// the suite of test scenarios in that directory.
 func FromDir(dirPath string) (*Suite, error) {
+	if _, err := os.Stat(dirPath); err != nil {
+		return nil, err
+	}
 	// List YAML files in the directory and parse each into a testable unit
 	s := New(WithPath(dirPath))
 

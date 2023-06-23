@@ -5,9 +5,6 @@
 package suite
 
 import (
-	"context"
-	"testing"
-
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
@@ -15,22 +12,22 @@ import (
 // representing a Scenario in a given directory
 type Suite struct {
 	// Path is the filepath to the test suite directory.
-	Path string `json:"-"`
+	Path string `yaml:"-"`
 	// Name is the short name for the test suite. If empty, defaults to Path.
-	Name string `json:"name,omitempty"`
+	Name string `yaml:"name,omitempty"`
 	// Description is a description of the tests contained in the test suite.
-	Description string `json:"description,omitempty"`
+	Description string `yaml:"description,omitempty"`
 	// Defaults contains any default configuration values for test cases
 	// contained within the test suite.
 	//
 	// During parsing, plugins are handed this raw data and asked to interpret
 	// it into known configuration values for that plugin.
-	Defaults map[string]interface{} `json:"defaults,omitempty"`
+	Defaults map[string]interface{} `yaml:"defaults,omitempty"`
 	// Require specifies an ordered list of fixtures the test suite's test
 	// cases depends on.
-	Require []string `json:"require,omitempty"`
-	// units is a collection of test cases in this test suite
-	units []gdttypes.Runnable
+	Require []string `yaml:"require,omitempty"`
+	// Scenarios is a collection of test scenarios in this test suite
+	Scenarios []gdttypes.Runnable `yaml:"-"`
 }
 
 // SuiteModifier sets some value on the test suite
@@ -82,12 +79,5 @@ func New(mods ...SuiteModifier) *Suite {
 
 // Append appends a runnable test element to the test suite
 func (s *Suite) Append(r gdttypes.Runnable) {
-	s.units = append(s.units, r)
-}
-
-// Run executes the tests in the test case
-func (s *Suite) Run(ctx context.Context, t *testing.T) {
-	for _, unit := range s.units {
-		unit.Run(ctx, t)
-	}
+	s.Scenarios = append(s.Scenarios, r)
 }
