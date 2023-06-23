@@ -42,12 +42,15 @@ type RuntimeErrors struct {
 	errors []error
 }
 
+// AppendIf appends the supplied error to the RuntimeErrors collection of
+// errors if the supplied error is not nil.
 func (r *RuntimeErrors) AppendIf(err error) {
 	if err != nil {
 		r.errors = append(r.errors, err)
 	}
 }
 
+// Error implements the error interface
 func (r *RuntimeErrors) Error() string {
 	var b strings.Builder
 	for x, e := range r.errors {
@@ -57,6 +60,11 @@ func (r *RuntimeErrors) Error() string {
 		b.WriteRune('\n')
 	}
 	return b.String()
+}
+
+// Empty returns true if the RuntimeErrors contains no errors.
+func (r *RuntimeErrors) Empty() bool {
+	return len(r.errors) == 0
 }
 
 func NewRuntimeErrors() *RuntimeErrors {

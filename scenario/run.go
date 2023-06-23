@@ -56,5 +56,8 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 			}
 		}
 	})
+	if errs.Empty() {
+		return nil
+	}
 	return errs
 }

@@ -12,6 +12,9 @@ import (
 )
 
 var (
+	// ErrUnknownSourceType indicates that a From() function was called with an
+	// unknown source parameter type.
+	ErrUnknownSourceType = errors.New("unknown source argument type")
 	// ErrUnknownSpec indicates that there was a test spec definition in a YAML
 	// file that no plugin could parse.
 	ErrUnknownSpec = errors.New("no plugin could parse spec definition")
@@ -108,4 +111,10 @@ func ExpectedTimeoutAt(node *yaml.Node) error {
 		"%w at line %d, column %d",
 		ErrInvalidExpectedTimeout, node.Line, node.Column,
 	)
+}
+
+// UnknownSourceType returns an ErrUnknownSourceType error describing the
+// supplied parameter type.
+func UnknownSourceType(source interface{}) error {
+	return fmt.Errorf("%w: %T", ErrUnknownSourceType, source)
 }
