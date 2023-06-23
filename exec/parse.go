@@ -25,7 +25,7 @@ func errUnknownShell(shell string) error {
 	)
 }
 
-func (s *ExecSpec) UnmarshalYAML(node *yaml.Node) error {
+func (s *Spec) UnmarshalYAML(node *yaml.Node) error {
 	if node.Kind != yaml.MappingNode {
 		return errors.ExpectedMapAt(node)
 	}

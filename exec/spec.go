@@ -8,9 +8,9 @@ import (
 	"github.com/jaypipes/gdt-core/spec"
 )
 
-// ExecSpec describes a single Spec that executes one or more commands via the
+// Spec describes a single Spec that executes one or more commands via the
 // operating system's `exec` family of functions.
-type ExecSpec struct {
+type Spec struct {
 	spec.Spec
 	// Exec is the exact command to execute.
 	//

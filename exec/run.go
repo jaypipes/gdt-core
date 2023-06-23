@@ -17,7 +17,7 @@ import (
 )
 
 // Run executes the specific exec test spec.
-func (s *ExecSpec) Run(ctx context.Context, t *testing.T) error {
+func (s *Spec) Run(ctx context.Context, t *testing.T) error {
 	assert := assert.New(t)
 
 	var cmd *exec.Cmd

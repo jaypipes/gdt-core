@@ -17,7 +17,7 @@ import (
 // coreSpecPrototypes returns a slice of known non-plugin Spec types
 func coreSpecPrototypes() []gdttypes.Spec {
 	return []gdttypes.Spec{
-		&gdtexec.ExecSpec{},
+		&gdtexec.Spec{},
 	}
 }
 
