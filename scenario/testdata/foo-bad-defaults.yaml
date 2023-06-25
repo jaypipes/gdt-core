@@ -1,0 +1,9 @@
+name: foo-bad-defaults
+description: a scenario with some bad foo defaults
+defaults:
+  foo:
+    bar: barconfig
+    fail: true
+tests:
+  - foo: bar
+    name: bar

@@ -42,11 +42,46 @@ func (s *failSpec) UnmarshalYAML(node *yaml.Node) error {
 	return fmt.Errorf("Indy, bad dates!")
 }
 
+type fooInnerDefaults struct {
+	Bar  string `yaml:"bar,omitempty"`
+	Fail bool   `yaml:"fail,omitempty"`
+}
+
 type fooDefaults struct {
-	Foo string `yaml:"foo"`
+	fooInnerDefaults
 }
 
 func (d *fooDefaults) UnmarshalYAML(node *yaml.Node) error {
+	if node.Kind != yaml.MappingNode {
+		return errors.ExpectedMapAt(node)
+	}
+	// maps/structs are stored in a top-level Node.Content field which is a
+	// concatenated slice of Node pointers in pairs of key/values.
+	for i := 0; i < len(node.Content); i += 2 {
+		keyNode := node.Content[i]
+		if keyNode.Kind != yaml.ScalarNode {
+			return errors.ExpectedScalarAt(keyNode)
+		}
+		key := keyNode.Value
+		valNode := node.Content[i+1]
+		switch key {
+		case "foo":
+			if valNode.Kind != yaml.MappingNode {
+				return errors.ExpectedMapAt(valNode)
+			}
+			inner := fooInnerDefaults{}
+			if err := valNode.Decode(&inner); err != nil {
+				return err
+			}
+			d.fooInnerDefaults = inner
+			// This is just for testing errors when parsing defaults...
+			if d.Fail {
+				return fmt.Errorf("defaults parsing failed")
+			}
+		default:
+			continue
+		}
+	}
 	return nil
 }
 
@@ -148,17 +183,57 @@ func TestNoPlugins(t *testing.T) {
 	assert.Nil(s)
 }
 
+func TestFailingDefaults(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
+
+	fp := filepath.Join("testdata", "foo-bad-defaults.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithContext(ctx),
+	)
+	assert.NotNil(err)
+	assert.ErrorContains(err, "defaults parsing failed")
+	assert.Nil(s)
+}
+
 func TestNoTests(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
 
 	fp := filepath.Join("testdata", "no-tests.yaml")
 	f, err := os.Open(fp)
 	require.Nil(err)
 
-	// When there are no plugins and no tests, we should successfully parse the
+	// When there are plugins but no tests, we should successfully parse the
 	// scenario's defaults and have an empty set of Tests in the scenario
-	s, err := scenario.FromReader(f, scenario.WithPath(fp))
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithContext(ctx),
+	)
 	assert.Nil(err)
 	assert.NotNil(s)
 
@@ -169,8 +244,10 @@ func TestNoTests(t *testing.T) {
 	assert.Equal([]string{"books_api", "books_data"}, sc.Require)
 	assert.Equal(
 		map[string]interface{}{
-			"http": map[string]interface{}{
-				"base_url": "http://127.0.0.1:4000",
+			"foo": &fooDefaults{
+				fooInnerDefaults{
+					Bar: "barconfig",
+				},
 			},
 		},
 		sc.Defaults,
@@ -363,8 +440,10 @@ func TestKnownSpec(t *testing.T) {
 	assert.Empty(sc.Require)
 	assert.Equal(
 		map[string]interface{}{
-			"foo": map[string]interface{}{
-				"key": "value",
+			"foo": &fooDefaults{
+				fooInnerDefaults{
+					Bar: "barconfig",
+				},
 			},
 		},
 		sc.Defaults,

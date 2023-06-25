@@ -2,7 +2,7 @@ name: foo
 description: a scenario with some foo test specs
 defaults:
   foo:
-    key: value
+    bar: barconfig
 tests:
   - foo: bar
     name: bar

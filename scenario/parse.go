@@ -61,8 +61,18 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 				return gdterrors.ExpectedMapAt(valNode)
 			}
 			defaults := map[string]interface{}{}
-			if err := valNode.Decode(&defaults); err != nil {
-				return err
+			// Each plugin can have its own set of default configuration values
+			// under an outer map field keyed to the name of the plugin.
+			// Plugins return a Defaults prototype from
+			// `gdttypes.Plugin.Defaults()` that understands how to parse a
+			// `yaml.Node` that represents the top-level defaults object in the
+			// scenario.
+			for _, p := range context.Plugins(s.ctx) {
+				plugDefaults := p.Defaults()
+				if err := valNode.Decode(plugDefaults); err != nil {
+					return err
+				}
+				defaults[p.Info().Name] = plugDefaults
 			}
 			s.Defaults = defaults
 		case "tests":
