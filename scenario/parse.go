@@ -15,8 +15,8 @@ import (
 )
 
 // coreSpecPrototypes returns a slice of known non-plugin Spec types
-func coreSpecPrototypes() []gdttypes.Spec {
-	return []gdttypes.Spec{
+func coreSpecPrototypes() []gdttypes.TestUnit {
+	return []gdttypes.TestUnit{
 		&gdtexec.Spec{},
 	}
 }
@@ -27,8 +27,14 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 	if node.Kind != yaml.MappingNode {
 		return gdterrors.ExpectedMapAt(node)
 	}
+	defaults := gdttypes.Defaults{}
 	// maps/structs are stored in a top-level Node.Content field which is a
 	// concatenated slice of Node pointers in pairs of key/values.
+	//
+	// We do a first pass over the scenario's common fields in order to get a
+	// set of parsed defaults and required fixtures. We then parse the
+	// individual test units since those are plugin-specific and may rely on
+	// the parsed defaults and required fixtures.
 	for i := 0; i < len(node.Content); i += 2 {
 		keyNode := node.Content[i]
 		if keyNode.Kind != yaml.ScalarNode {
@@ -60,7 +66,6 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 			if valNode.Kind != yaml.MappingNode {
 				return gdterrors.ExpectedMapAt(valNode)
 			}
-			defaults := map[string]interface{}{}
 			// Each plugin can have its own set of default configuration values
 			// under an outer map field keyed to the name of the plugin.
 			// Plugins return a Defaults prototype from
@@ -75,12 +80,27 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 				defaults[p.Info().Name] = plugDefaults
 			}
 			s.Defaults = defaults
-		case "tests":
+		}
+	}
+	for i := 0; i < len(node.Content); i += 2 {
+		keyNode := node.Content[i]
+		if keyNode.Kind != yaml.ScalarNode {
+			return gdterrors.ExpectedScalarAt(keyNode)
+		}
+		key := keyNode.Value
+		if key == "tests" {
+			valNode := node.Content[i+1]
 			if valNode.Kind != yaml.SequenceNode {
 				return gdterrors.ExpectedSequenceAt(valNode)
 			}
 			for idx, testNode := range valNode.Content {
 				parsed := false
+				base := gdttypes.Spec{}
+				if err := testNode.Decode(&base); err != nil {
+					return err
+				}
+				base.Index = idx
+				base.Defaults = &defaults
 				specs := coreSpecPrototypes()
 				for _, p := range context.Plugins(s.ctx) {
 					specs = append(specs, p.Specs()...)
@@ -91,21 +111,17 @@ func (s *Scenario) UnmarshalYAML(node *yaml.Node) error {
 							continue
 						}
 						return err
-					} else {
-						if err := sp.SetBaseFields(idx, testNode); err != nil {
-							return err
-						}
-						s.Tests = append(s.Tests, sp)
-						parsed = true
-						break
 					}
+					sp.SetBase(base)
+					s.Tests = append(s.Tests, sp)
+					parsed = true
+					break
 				}
 				if !parsed {
 					return gdterrors.UnknownSpecAt(s.Path, valNode)
 				}
 			}
 		}
-
 	}
 	return nil
 }

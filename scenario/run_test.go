@@ -16,7 +16,6 @@ import (
 	"github.com/jaypipes/gdt-core/plugin"
 	"github.com/jaypipes/gdt-core/result"
 	"github.com/jaypipes/gdt-core/scenario"
-	"github.com/jaypipes/gdt-core/spec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
@@ -74,9 +73,17 @@ func (d *priorRunDefaults) UnmarshalYAML(node *yaml.Node) error {
 }
 
 type priorRunSpec struct {
-	spec.Spec
+	gdttypes.Spec
 	State string `yaml:"state"`
 	Prior string `yaml:"prior"`
+}
+
+func (s *priorRunSpec) SetBase(b gdttypes.Spec) {
+	s.Spec = b
+}
+
+func (s *priorRunSpec) Base() *gdttypes.Spec {
+	return &s.Spec
 }
 
 func (s *priorRunSpec) UnmarshalYAML(node *yaml.Node) error {
@@ -104,7 +111,7 @@ func (s *priorRunSpec) UnmarshalYAML(node *yaml.Node) error {
 			}
 			s.Prior = valNode.Value
 		default:
-			if lo.Contains(spec.BaseFields, key) {
+			if lo.Contains(gdttypes.BaseSpecFields, key) {
 				continue
 			}
 			return errors.UnknownFieldAt(key, keyNode)
@@ -142,8 +149,8 @@ func (p *priorRunPlugin) Defaults() yaml.Unmarshaler {
 	return &priorRunDefaults{}
 }
 
-func (p *priorRunPlugin) Specs() []gdttypes.Spec {
-	return []gdttypes.Spec{&priorRunSpec{}}
+func (p *priorRunPlugin) Specs() []gdttypes.TestUnit {
+	return []gdttypes.TestUnit{&priorRunSpec{}}
 }
 
 func TestPriorRun(t *testing.T) {

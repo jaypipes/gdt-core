@@ -10,7 +10,6 @@ import (
 
 	gdtcontext "github.com/jaypipes/gdt-core/context"
 	"github.com/jaypipes/gdt-core/fixture"
-	"github.com/jaypipes/gdt-core/spec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
@@ -27,8 +26,16 @@ func (d *fooDefaults) UnmarshalYAML(node *yaml.Node) error {
 }
 
 type fooSpec struct {
-	spec.Spec
+	gdttypes.Spec
 	Foo string `yaml:"foo"`
+}
+
+func (s *fooSpec) SetBase(b gdttypes.Spec) {
+	s.Spec = b
+}
+
+func (s *fooSpec) Base() *gdttypes.Spec {
+	return &s.Spec
 }
 
 func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
@@ -51,8 +58,8 @@ func (p *fooPlugin) Defaults() yaml.Unmarshaler {
 	return &fooDefaults{}
 }
 
-func (p *fooPlugin) Specs() []gdttypes.Spec {
-	return []gdttypes.Spec{&fooSpec{}}
+func (p *fooPlugin) Specs() []gdttypes.TestUnit {
+	return []gdttypes.TestUnit{&fooSpec{}}
 }
 
 func TestContext(t *testing.T) {

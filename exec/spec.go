@@ -5,13 +5,13 @@
 package exec
 
 import (
-	"github.com/jaypipes/gdt-core/spec"
+	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 // Spec describes a single Spec that executes one or more commands via the
 // operating system's `exec` family of functions.
 type Spec struct {
-	spec.Spec
+	gdttypes.Spec
 	// Exec is the exact command to execute.
 	//
 	// You may execute more than one command but must include the `shell` field
@@ -31,4 +31,12 @@ type Spec struct {
 	Out *PipeAssertions `yaml:"out,omitempty"`
 	// Err has things that are expected in the stderr response
 	Err *PipeAssertions `yaml:"err,omitempty"`
+}
+
+func (s *Spec) SetBase(b gdttypes.Spec) {
+	s.Spec = b
+}
+
+func (s *Spec) Base() *gdttypes.Spec {
+	return &s.Spec
 }

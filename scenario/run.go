@@ -31,7 +31,7 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 	errs := gdterrors.NewRuntimeErrors()
 	t.Run(s.Title(), func(t *testing.T) {
 		for _, spec := range s.Tests {
-			to := spec.Timeout()
+			to := spec.Base().Timeout
 			if to != nil {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, to.Duration())

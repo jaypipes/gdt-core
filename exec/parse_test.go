@@ -12,7 +12,6 @@ import (
 	"github.com/jaypipes/gdt-core/errors"
 	gdtexec "github.com/jaypipes/gdt-core/exec"
 	"github.com/jaypipes/gdt-core/scenario"
-	"github.com/jaypipes/gdt-core/spec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,10 +51,11 @@ func TestSimpleCommand(t *testing.T) {
 
 	assert.IsType(&scenario.Scenario{}, s)
 	sc := s.(*scenario.Scenario)
-	expTests := []gdttypes.Spec{
+	expTests := []gdttypes.TestUnit{
 		&gdtexec.Spec{
-			Spec: spec.Spec{
-				Index: 0,
+			Spec: gdttypes.Spec{
+				Index:    0,
+				Defaults: &gdttypes.Defaults{},
 			},
 			Exec: "ls",
 		},

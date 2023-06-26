@@ -16,7 +16,6 @@ import (
 	"github.com/jaypipes/gdt-core/errors"
 	"github.com/jaypipes/gdt-core/plugin"
 	"github.com/jaypipes/gdt-core/scenario"
-	"github.com/jaypipes/gdt-core/spec"
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +30,15 @@ func (d *failDefaults) UnmarshalYAML(node *yaml.Node) error {
 }
 
 type failSpec struct {
-	spec.Spec
+	gdttypes.Spec
+}
+
+func (s *failSpec) SetBase(b gdttypes.Spec) {
+	s.Spec = b
+}
+
+func (s *failSpec) Base() *gdttypes.Spec {
+	return &s.Spec
 }
 
 func (s *failSpec) Run(context.Context, *testing.T) error {
@@ -86,8 +93,16 @@ func (d *fooDefaults) UnmarshalYAML(node *yaml.Node) error {
 }
 
 type fooSpec struct {
-	spec.Spec
+	gdttypes.Spec
 	Foo string `yaml:"foo"`
+}
+
+func (s *fooSpec) SetBase(b gdttypes.Spec) {
+	s.Spec = b
+}
+
+func (s *fooSpec) Base() *gdttypes.Spec {
+	return &s.Spec
 }
 
 func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
@@ -110,7 +125,7 @@ func (s *fooSpec) UnmarshalYAML(node *yaml.Node) error {
 			}
 			s.Foo = valNode.Value
 		default:
-			if lo.Contains(spec.BaseFields, key) {
+			if lo.Contains(gdttypes.BaseSpecFields, key) {
 				continue
 			}
 			return errors.UnknownFieldAt(key, keyNode)
@@ -128,8 +143,16 @@ func (d *barDefaults) UnmarshalYAML(node *yaml.Node) error {
 }
 
 type barSpec struct {
-	spec.Spec
+	gdttypes.Spec
 	Bar int `yaml:"bar"`
+}
+
+func (s *barSpec) SetBase(b gdttypes.Spec) {
+	s.Spec = b
+}
+
+func (s *barSpec) Base() *gdttypes.Spec {
+	return &s.Spec
 }
 
 func (s *barSpec) Run(context.Context, *testing.T) error {
@@ -160,7 +183,7 @@ func (s *barSpec) UnmarshalYAML(node *yaml.Node) error {
 				s.Bar = v
 			}
 		default:
-			if lo.Contains(spec.BaseFields, key) {
+			if lo.Contains(gdttypes.BaseSpecFields, key) {
 				continue
 			}
 			return errors.UnknownFieldAt(key, keyNode)
@@ -267,8 +290,8 @@ func (p *failingPlugin) Defaults() yaml.Unmarshaler {
 	return &failDefaults{}
 }
 
-func (p *failingPlugin) Specs() []gdttypes.Spec {
-	return []gdttypes.Spec{&failSpec{}}
+func (p *failingPlugin) Specs() []gdttypes.TestUnit {
+	return []gdttypes.TestUnit{&failSpec{}}
 }
 
 func TestFailingPlugin(t *testing.T) {
@@ -310,8 +333,8 @@ func (p *barPlugin) Defaults() yaml.Unmarshaler {
 	return &barDefaults{}
 }
 
-func (p *barPlugin) Specs() []gdttypes.Spec {
-	return []gdttypes.Spec{&barSpec{}}
+func (p *barPlugin) Specs() []gdttypes.TestUnit {
+	return []gdttypes.TestUnit{&barSpec{}}
 }
 
 func TestUnknownSpec(t *testing.T) {
@@ -404,8 +427,8 @@ func (p *fooPlugin) Defaults() yaml.Unmarshaler {
 	return &fooDefaults{}
 }
 
-func (p *fooPlugin) Specs() []gdttypes.Spec {
-	return []gdttypes.Spec{&fooSpec{}}
+func (p *fooPlugin) Specs() []gdttypes.TestUnit {
+	return []gdttypes.TestUnit{&fooSpec{}}
 }
 
 func TestKnownSpec(t *testing.T) {
@@ -448,18 +471,27 @@ func TestKnownSpec(t *testing.T) {
 		},
 		sc.Defaults,
 	)
-	expTests := []gdttypes.Spec{
+	expSpecDefaults := &gdttypes.Defaults{
+		"foo": &fooDefaults{
+			fooInnerDefaults{
+				Bar: "barconfig",
+			},
+		},
+	}
+	expTests := []gdttypes.TestUnit{
 		&fooSpec{
-			Spec: spec.Spec{
-				Index: 0,
-				Name:  "bar",
+			Spec: gdttypes.Spec{
+				Index:    0,
+				Name:     "bar",
+				Defaults: expSpecDefaults,
 			},
 			Foo: "bar",
 		},
 		&fooSpec{
-			Spec: spec.Spec{
+			Spec: gdttypes.Spec{
 				Index:       1,
 				Description: "Bazzy Bizzy",
+				Defaults:    expSpecDefaults,
 			},
 			Foo: "baz",
 		},
@@ -497,16 +529,18 @@ func TestMultipleSpec(t *testing.T) {
 	sc := s.(*scenario.Scenario)
 	assert.Equal("foo-bar", sc.Name)
 	assert.Equal(filepath.Join("testdata", "foo-bar.yaml"), sc.Path)
-	expTests := []gdttypes.Spec{
+	expTests := []gdttypes.TestUnit{
 		&fooSpec{
-			Spec: spec.Spec{
-				Index: 0,
+			Spec: gdttypes.Spec{
+				Index:    0,
+				Defaults: &gdttypes.Defaults{},
 			},
 			Foo: "bar",
 		},
 		&barSpec{
-			Spec: spec.Spec{
-				Index: 1,
+			Spec: gdttypes.Spec{
+				Index:    1,
+				Defaults: &gdttypes.Defaults{},
 			},
 			Bar: 42,
 		},

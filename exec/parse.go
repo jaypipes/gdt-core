@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 
 	"github.com/jaypipes/gdt-core/errors"
-	"github.com/jaypipes/gdt-core/spec"
-	"github.com/samber/lo"
+	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 // errUnknownShell returns a wrapped version of ErrInvalid that indicates the
@@ -80,7 +80,7 @@ func (s *Spec) UnmarshalYAML(node *yaml.Node) error {
 			}
 			s.Err = pa
 		default:
-			if lo.Contains(spec.BaseFields, key) {
+			if lo.Contains(gdttypes.BaseSpecFields, key) {
 				continue
 			}
 			return errors.UnknownFieldAt(key, keyNode)
