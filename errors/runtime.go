@@ -62,6 +62,11 @@ func (r *RuntimeErrors) Error() string {
 	return b.String()
 }
 
+// String satisfies the Stringer interface
+func (r *RuntimeErrors) String() string {
+	return r.Error()
+}
+
 // Empty returns true if the RuntimeErrors contains no errors.
 func (r *RuntimeErrors) Empty() bool {
 	return len(r.errors) == 0
