@@ -67,6 +67,17 @@ func (r *RuntimeErrors) Empty() bool {
 	return len(r.errors) == 0
 }
 
+// Has checks the RuntimeErrors has at least one contained error that matches
+// the supplied error type target.
+func (r *RuntimeErrors) Has(target error) bool {
+	for _, err := range r.errors {
+		if errors.Is(err, target) {
+			return true
+		}
+	}
+	return false
+}
+
 func NewRuntimeErrors() *RuntimeErrors {
 	return &RuntimeErrors{
 		errors: []error{},
