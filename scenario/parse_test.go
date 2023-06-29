@@ -547,3 +547,75 @@ func TestMultipleSpec(t *testing.T) {
 	}
 	assert.Equal(expTests, sc.Tests)
 }
+
+func TestEnvExpansion(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
+
+	fp := filepath.Join("testdata", "env-expansion.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+	)
+
+	t.Setenv("foo", "bar")
+	t.Setenv("BAR_CONFIG", "barconfig")
+	t.Setenv("DESCRIPTION", "Bazzy Bizzy")
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithContext(ctx),
+	)
+	assert.Nil(err)
+	assert.NotNil(s)
+
+	assert.IsType(&scenario.Scenario{}, s)
+	sc := s.(*scenario.Scenario)
+	assert.Equal("env-expansion", sc.Name)
+	assert.Equal(filepath.Join("testdata", "env-expansion.yaml"), sc.Path)
+	assert.Empty(sc.Require)
+	assert.Equal(
+		map[string]interface{}{
+			"foo": &fooDefaults{
+				fooInnerDefaults{
+					Bar: "barconfig",
+				},
+			},
+		},
+		sc.Defaults,
+	)
+	expSpecDefaults := &gdttypes.Defaults{
+		"foo": &fooDefaults{
+			fooInnerDefaults{
+				Bar: "barconfig",
+			},
+		},
+	}
+	expTests := []gdttypes.TestUnit{
+		&fooSpec{
+			Spec: gdttypes.Spec{
+				Index:    0,
+				Name:     "$NOT_EXPANDED",
+				Defaults: expSpecDefaults,
+			},
+			Foo: "bar",
+		},
+		&fooSpec{
+			Spec: gdttypes.Spec{
+				Index:       1,
+				Description: "Bazzy Bizzy",
+				Defaults:    expSpecDefaults,
+			},
+			Foo: "baz",
+		},
+	}
+	assert.Equal(expTests, sc.Tests)
+}
