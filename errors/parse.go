@@ -48,6 +48,11 @@ var (
 	ErrInvalidExpectedTimeout = fmt.Errorf(
 		"%w: expected timeout specification", ErrInvalid,
 	)
+	// ErrInvalidFileNotFound is returned when a file path does not exist
+	// for a create/apply/delete target.
+	ErrInvalidFileNotFound = fmt.Errorf(
+		"%w: file not found", ErrInvalid,
+	)
 )
 
 // UnknownSpecAt returns an ErrUnknownSpec with the line/column of the supplied
@@ -117,4 +122,9 @@ func ExpectedTimeoutAt(node *yaml.Node) error {
 // supplied parameter type.
 func UnknownSourceType(source interface{}) error {
 	return fmt.Errorf("%w: %T", ErrUnknownSourceType, source)
+}
+
+// FileNotFound returns ErrInvalidFileNotFound for a given file path
+func FileNotFound(path string) error {
+	return fmt.Errorf("%w: %s", ErrInvalidFileNotFound, path)
 }
