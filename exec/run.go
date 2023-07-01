@@ -5,12 +5,12 @@
 package exec
 
 import (
+	"bytes"
 	"context"
 	"os/exec"
 	"testing"
 
 	"github.com/google/shlex"
-	"github.com/stretchr/testify/assert"
 
 	gdtcontext "github.com/jaypipes/gdt-core/context"
 	gdterrors "github.com/jaypipes/gdt-core/errors"
@@ -18,7 +18,12 @@ import (
 
 // Run executes the specific exec test spec.
 func (s *Spec) Run(ctx context.Context, t *testing.T) error {
-	assert := assert.New(t)
+
+	assertions := newAssertions(
+		s.ExitCode, s.Out, s.Err,
+	)
+	outbuf := &bytes.Buffer{}
+	errbuf := &bytes.Buffer{}
 
 	var cmd *exec.Cmd
 	if s.Shell == "" {
@@ -47,22 +52,23 @@ func (s *Spec) Run(ctx context.Context, t *testing.T) error {
 	if err != nil {
 		return err
 	}
-
-	if s.Out != nil {
-		s.Out.Assert(t, "stdout", outpipe)
-	}
-	if s.Err != nil {
-		s.Err.Assert(t, "stderr", errpipe)
-	}
+	outbuf.ReadFrom(outpipe)
+	errbuf.ReadFrom(errpipe)
 
 	err = cmd.Wait()
 	if gdtcontext.TimedOut(ctx, err) {
 		return gdterrors.ErrTimeout
 	}
+	ec := 0
 	if err != nil {
 		eerr, _ := err.(*exec.ExitError)
-		assert.Equal(s.ExitCode, eerr.ExitCode())
-		return err
+		ec = eerr.ExitCode()
+	}
+
+	if !assertions.OK(ec, outbuf, errbuf) {
+		for _, failure := range assertions.Failures() {
+			t.Error(failure)
+		}
 	}
 	return nil
 }
