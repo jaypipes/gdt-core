@@ -13,49 +13,55 @@ var (
 	// ErrFailure is the base error class for all errors that represent failed
 	// assertions when evaluating a test.
 	ErrFailure = errors.New("assertion failed")
+	// ErrTimeoutExceeded is an ErrFailure when a test's execution exceeds a
+	// timeout length.
+	ErrTimeoutExceeded = fmt.Errorf("%s: timeout exceeded", ErrFailure)
+	// ErrNotEqual is an ErrFailure when an expected thing doesn't equal an
+	// observed thing.
+	ErrNotEqual = fmt.Errorf("%w: not equal", ErrFailure)
+	// ErrNotIn is an ErrFailure when an expected thing doesn't appear in an
+	// expected container.
+	ErrNotIn = fmt.Errorf("%w: not in", ErrFailure)
+	// ErrNoneIn is an ErrFailure when none of a list of elements appears in an
+	// expected container.
+	ErrNoneIn = fmt.Errorf("%w: none in", ErrFailure)
 )
 
-// TimeoutExceeded returns an ErrFailure when a test's execution exceeds a
-// timeout length.
+// TimeoutExceeded returns an ErrTimeoutExceeded when a test's execution
+// exceeds a timeout length.
 func TimeoutExceeded(duration string) error {
-	return fmt.Errorf(
-		"%s: timeout of %s exceeded",
-		ErrFailure, duration,
-	)
+	return fmt.Errorf("%s (%s)", ErrTimeoutExceeded, duration)
 }
 
-// NotEqualLength returns an ErrFailure when an expected length doesn't equal an
-// observed length.
+// NotEqualLength returns an ErrNotEqual when an expected length doesn't
+// equal an observed length.
 func NotEqualLength(exp, got int) error {
 	return fmt.Errorf(
 		"%w: expected length of %d but got %d",
-		ErrFailure, exp, got,
+		ErrNotEqual, exp, got,
 	)
 }
 
-// NotEqual returns an ErrFailure when an expected thing doesn't equal an
+// NotEqual returns an ErrNotEqual when an expected thing doesn't equal an
 // observed thing.
 func NotEqual(exp, got interface{}) error {
-	return fmt.Errorf(
-		"%w: expected %v but got %v",
-		ErrFailure, exp, got,
-	)
+	return fmt.Errorf("%w: expected %v but got %v", ErrNotEqual, exp, got)
 }
 
-// NotIn returns an ErrFailure when an expected thing doesn't appear in an
+// NotIn returns an ErrNotIn when an expected thing doesn't appear in an
 // expected container.
 func NotIn(element, container interface{}) error {
 	return fmt.Errorf(
 		"%w: expected %v to contain %v",
-		ErrFailure, container, element,
+		ErrNotIn, container, element,
 	)
 }
 
-// NoneIn returns an ErrFailure when none of a list of elements appears in an
+// NoneIn returns an ErrNoneIn when none of a list of elements appears in an
 // expected container.
 func NoneIn(elements, container interface{}) error {
 	return fmt.Errorf(
 		"%w: expected %v to contain one of %v",
-		ErrFailure, container, elements,
+		ErrNoneIn, container, elements,
 	)
 }
