@@ -20,6 +20,7 @@ var (
 		"name",
 		"description",
 		"timeout",
+		"wait",
 	}
 )
 
@@ -38,6 +39,8 @@ type Spec struct {
 	Description string `yaml:"description,omitempty"`
 	// Timeout contains the timeout configuration for the Spec
 	Timeout *Timeout `yaml:"timeout,omitempty"`
+	// Wait contains the wait configuration for the Spec
+	Wait *Wait `yaml:"wait,omitempty"`
 }
 
 // Title returns the Name of the scenario or the Path's file/base name if there
@@ -111,6 +114,27 @@ func (s *Spec) UnmarshalYAML(node *yaml.Node) error {
 				return err
 			}
 			s.Timeout = to
+		case "wait":
+			if valNode.Kind != yaml.MappingNode {
+				return errors.ExpectedMapAt(valNode)
+			}
+			var w *Wait
+			if err := valNode.Decode(&w); err != nil {
+				return errors.ExpectedWaitAt(valNode)
+			}
+			if w.Before != "" {
+				_, err := time.ParseDuration(w.Before)
+				if err != nil {
+					return err
+				}
+			}
+			if w.After != "" {
+				_, err := time.ParseDuration(w.After)
+				if err != nil {
+					return err
+				}
+			}
+			s.Wait = w
 		}
 	}
 	return nil

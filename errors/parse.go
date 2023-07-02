@@ -48,6 +48,10 @@ var (
 	ErrInvalidExpectedTimeout = fmt.Errorf(
 		"%w: expected timeout specification", ErrInvalid,
 	)
+	// ErrInvalidWait indicates that the wait specification was not valid.
+	ErrInvalidExpectedWait = fmt.Errorf(
+		"%w: expected wait specification", ErrInvalid,
+	)
 	// ErrInvalidFileNotFound is returned when a file path does not exist
 	// for a create/apply/delete target.
 	ErrInvalidFileNotFound = fmt.Errorf(
@@ -115,6 +119,15 @@ func ExpectedTimeoutAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
 		ErrInvalidExpectedTimeout, node.Line, node.Column,
+	)
+}
+
+// ExpectedWaitAt returns an ErrInvalidExpectedWait error annotated with the
+// line/column of the supplied YAML node.
+func ExpectedWaitAt(node *yaml.Node) error {
+	return fmt.Errorf(
+		"%w at line %d, column %d",
+		ErrInvalidExpectedWait, node.Line, node.Column,
 	)
 }
 

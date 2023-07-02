@@ -182,3 +182,29 @@ func TestDebugWriter(t *testing.T) {
 	require.Contains(debugout, "exec: echo [cat]")
 	require.Contains(debugout, "exec: sh [-c echo cat 1>&2]")
 }
+
+func TestWait(t *testing.T) {
+	require := require.New(t)
+
+	fp := filepath.Join("testdata", "echo-wait.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+	)
+	require.Nil(err)
+	require.NotNil(s)
+
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	ctx := gdtcontext.New(gdtcontext.WithDebug(w))
+	err = s.Run(ctx, t)
+	require.Nil(err)
+	w.Flush()
+	require.NotEqual(b.Len(), 0)
+	debugout := b.String()
+	require.Contains(debugout, "wait: 10ms before")
+	require.Contains(debugout, "wait: 20ms after")
+}

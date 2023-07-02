@@ -8,8 +8,10 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	gdtcontext "github.com/jaypipes/gdt-core/context"
+	"github.com/jaypipes/gdt-core/debug"
 	gdterrors "github.com/jaypipes/gdt-core/errors"
 	"github.com/jaypipes/gdt-core/result"
 )
@@ -31,7 +33,13 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 	errs := gdterrors.NewRuntimeErrors()
 	t.Run(s.Title(), func(t *testing.T) {
 		for _, spec := range s.Tests {
-			to := spec.Base().Timeout
+			sb := spec.Base()
+			wait := sb.Wait
+			if wait != nil && wait.Before != "" {
+				debug.Println(ctx, "wait: %s before", wait.Before)
+				time.Sleep(wait.BeforeDuration())
+			}
+			to := sb.Timeout
 			if to != nil {
 				var cancel context.CancelFunc
 				ctx, cancel = context.WithTimeout(ctx, to.Duration())
@@ -56,6 +64,10 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 				errs.AppendIf(res.Unwrap())
 			} else {
 				errs.AppendIf(err)
+			}
+			if wait != nil && wait.After != "" {
+				debug.Println(ctx, "wait: %s after", wait.After)
+				time.Sleep(wait.AfterDuration())
 			}
 		}
 	})
