@@ -6,9 +6,21 @@ package context
 
 import (
 	"context"
+	"io"
 
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
+
+// Debug gets a context's Debug writer
+func Debug(ctx context.Context) io.Writer {
+	if ctx == nil {
+		return io.Discard
+	}
+	if v := ctx.Value(debugKey); v != nil {
+		return v.(io.Writer)
+	}
+	return io.Discard
+}
 
 // Plugins gets a context's Plugins
 func Plugins(ctx context.Context) []gdttypes.Plugin {

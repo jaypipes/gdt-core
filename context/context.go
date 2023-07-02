@@ -6,6 +6,7 @@ package context
 
 import (
 	"context"
+	"io"
 
 	gdttypes "github.com/jaypipes/gdt-core/types"
 	"github.com/samber/lo"
@@ -14,6 +15,7 @@ import (
 type ContextKey string
 
 var (
+	debugKey    = ContextKey("gdt.debug")
 	pluginsKey  = ContextKey("gdt.plugins")
 	fixturesKey = ContextKey("gdt.fixtures")
 	priorRunKey = ContextKey("gdt.run.prior")
@@ -21,6 +23,29 @@ var (
 
 // ContextModifier sets some value on the context
 type ContextModifier func(context.Context) context.Context
+
+// WithDebug sets a context's Debug writer. If you want gdt to log extra
+// debugging information about tests and assertions, pass it a context with a
+// debug writer:
+//
+// ```go
+// f := ioutil.TempFile("", "mytest*.log")
+// ctx := gdtcontext.New(gdtcontext.WithDebug(f))
+// ```
+//
+// you can then inspect the debug "log" and do whatever you'd like with it.
+//
+// Or you could pass a console writer and just have gdt write to the console
+// its debugging information:
+//
+// ```go
+// ctx := gdtcontext.New(gdtcontext.WithDebug(os.Stdout))
+// ```
+func WithDebug(debug io.Writer) ContextModifier {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, debugKey, debug)
+	}
+}
 
 // WithPlugins sets a context's Plugins
 func WithPlugins(plugins []gdttypes.Plugin) ContextModifier {
@@ -34,6 +59,14 @@ func WithFixtures(fixtures map[string]gdttypes.Fixture) ContextModifier {
 	return func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, fixturesKey, fixtures)
 	}
+}
+
+// SetDebug sets gdt's debug logging to the supplied `io.Writer`
+func SetDebug(
+	ctx context.Context,
+	debug io.Writer,
+) context.Context {
+	return context.WithValue(ctx, debugKey, debug)
 }
 
 // RegisterFixture registers a named fixtures with the context

@@ -13,28 +13,36 @@ import (
 	"github.com/google/shlex"
 
 	gdtcontext "github.com/jaypipes/gdt-core/context"
+	"github.com/jaypipes/gdt-core/debug"
 	gdterrors "github.com/jaypipes/gdt-core/errors"
 )
 
 // Run executes the specific exec test spec.
 func (s *Spec) Run(ctx context.Context, t *testing.T) error {
-
 	assertions := newAssertions(
 		s.ExitCode, s.Out, s.Err,
 	)
 	outbuf := &bytes.Buffer{}
 	errbuf := &bytes.Buffer{}
 
+	var err error
 	var cmd *exec.Cmd
+	var target string
+	var args []string
 	if s.Shell == "" {
-		args, err := shlex.Split(s.Exec)
+		args, err = shlex.Split(s.Exec)
 		if err != nil {
 			return err
 		}
-		cmd = exec.CommandContext(ctx, args[0], args[1:]...)
+		target = args[0]
+		args = args[1:]
 	} else {
-		cmd = exec.CommandContext(ctx, s.Shell, "-c", s.Exec)
+		target = s.Shell
+		args = []string{"-c", s.Exec}
 	}
+
+	debug.Println(ctx, "exec: %s %s", target, args)
+	cmd = exec.CommandContext(ctx, target, args...)
 
 	outpipe, err := cmd.StdoutPipe()
 	if err != nil {

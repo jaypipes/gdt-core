@@ -5,12 +5,15 @@
 package exec_test
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 
+	gdtcontext "github.com/jaypipes/gdt-core/context"
 	"github.com/jaypipes/gdt-core/scenario"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +33,8 @@ func TestNoExitCodeSimpleCommand(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestExitCode(t *testing.T) {
@@ -54,7 +58,8 @@ func TestExitCode(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestShellList(t *testing.T) {
@@ -72,7 +77,8 @@ func TestShellList(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestIs(t *testing.T) {
@@ -90,7 +96,8 @@ func TestIs(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestContains(t *testing.T) {
@@ -108,7 +115,8 @@ func TestContains(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestContainsOneOf(t *testing.T) {
@@ -126,7 +134,8 @@ func TestContainsOneOf(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestSleepTimeout(t *testing.T) {
@@ -145,4 +154,32 @@ func TestSleepTimeout(t *testing.T) {
 
 	ctx := context.TODO()
 	s.Run(ctx, t)
+	// TODO(jaypipes): Uncomment when timeouts no longer return errors from Run()
+	// require.Nil(err)
+}
+
+func TestDebugWriter(t *testing.T) {
+	require := require.New(t)
+
+	fp := filepath.Join("testdata", "echo-cat.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+	)
+	require.Nil(err)
+	require.NotNil(s)
+
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	ctx := gdtcontext.New(gdtcontext.WithDebug(w))
+	err = s.Run(ctx, t)
+	require.Nil(err)
+	w.Flush()
+	require.NotEqual(b.Len(), 0)
+	debugout := b.String()
+	require.Contains(debugout, "exec: echo [cat]")
+	require.Contains(debugout, "exec: sh [-c echo cat 1>&2]")
 }
