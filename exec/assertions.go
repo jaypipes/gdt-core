@@ -9,16 +9,11 @@ import (
 	"strings"
 
 	"github.com/jaypipes/gdt-core/errors"
+	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
 // PipeAssertions contains assertions about the contents of a pipe
 type PipeAssertions struct {
-	// failures contains the set of error messages for failed assertions
-	failures []error
-	// terminal indicates there was a failure in evaluating the assertions that
-	// should be considered a terminal condition (and therefore the test action
-	// should not be retried).
-	terminal bool
 	// Is contains the exact match (minus whitespace) of the contents of the
 	// pipe
 	Is *string `yaml:"is,omitempty"`
@@ -30,13 +25,28 @@ type PipeAssertions struct {
 	ContainsOneOf []string `yaml:"contains_one_of,omitempty"`
 }
 
+// pipeAssertions contains assertions about the contents of a pipe
+type pipeAssertions struct {
+	PipeAssertions
+	// pipe is the contents of the pipe that we will evaluate.
+	pipe *bytes.Buffer
+	// name is the string name of the pipe.
+	name string
+	// failures contains the set of error messages for failed assertions.
+	failures []error
+	// terminal indicates there was a failure in evaluating the assertions that
+	// should be considered a terminal condition (and therefore the test action
+	// should not be retried).
+	terminal bool
+}
+
 // Fail appends a supplied error to the set of failed assertions
-func (a *PipeAssertions) Fail(err error) {
+func (a *pipeAssertions) Fail(err error) {
 	a.failures = append(a.failures, err)
 }
 
 // Failures returns a slice of errors for all failed assertions
-func (a *PipeAssertions) Failures() []error {
+func (a *pipeAssertions) Failures() []error {
 	if a == nil {
 		return []error{}
 	}
@@ -45,25 +55,22 @@ func (a *PipeAssertions) Failures() []error {
 
 // Terminal returns a bool indicating the assertions failed in a way that is
 // not retryable.
-func (a *PipeAssertions) Terminal() bool {
+func (a *pipeAssertions) Terminal() bool {
 	if a == nil {
 		return false
 	}
 	return a.terminal
 }
 
-// OK checks all the assertions in the PipeAssertions against the supplied pipe
+// OK checks all the assertions in the pipeAssertions against the supplied pipe
 // contents and returns true if all assertions pass.
-func (a *PipeAssertions) OK(
-	pipeName string,
-	pipe *bytes.Buffer,
-) bool {
-	if a == nil {
+func (a *pipeAssertions) OK() bool {
+	if a == nil || a.pipe == nil {
 		return true
 	}
 
 	res := true
-	contents := strings.TrimSpace(pipe.String())
+	contents := strings.TrimSpace(a.pipe.String())
 	if a.Is != nil {
 		exp := *a.Is
 		got := contents
@@ -75,7 +82,7 @@ func (a *PipeAssertions) OK(
 	if len(a.Contains) > 0 {
 		for _, find := range a.Contains {
 			if !strings.Contains(contents, find) {
-				a.Fail(errors.NotIn(find, pipeName))
+				a.Fail(errors.NotIn(find, a.name))
 				res = false
 			}
 		}
@@ -89,7 +96,7 @@ func (a *PipeAssertions) OK(
 			}
 		}
 		if !found {
-			a.Fail(errors.NoneIn(a.ContainsOneOf, pipeName))
+			a.Fail(errors.NoneIn(a.ContainsOneOf, a.name))
 			res = false
 		}
 	}
@@ -104,12 +111,14 @@ type assertions struct {
 	// should be considered a terminal condition (and therefore the test action
 	// should not be retried).
 	terminal bool
-	// exitCode contains the required exit code
+	// expExitCode contains the expected exit code
+	expExitCode int
+	// exitCode is the exit code we got from the execution
 	exitCode int
-	// outpipe contains the assertions against stdout
-	outpipe *PipeAssertions
-	// errpipe contains the assertions against stderr
-	errpipe *PipeAssertions
+	// expOutPipe contains the assertions against stdout
+	expOutPipe *pipeAssertions
+	// expErrPipe contains the assertions against stderr
+	expErrPipe *pipeAssertions
 }
 
 // Fail appends a supplied error to the set of failed assertions
@@ -136,22 +145,18 @@ func (a *assertions) Terminal() bool {
 
 // OK checks all the assertions against the supplied arguments and returns true
 // if all assertions pass.
-func (a *assertions) OK(
-	exitCode int,
-	stdout *bytes.Buffer,
-	stderr *bytes.Buffer,
-) bool {
+func (a *assertions) OK() bool {
 	res := true
-	if exitCode != a.exitCode {
-		a.Fail(errors.NotEqual(exitCode, a.exitCode))
+	if a.expExitCode != a.exitCode {
+		a.Fail(errors.NotEqual(a.expExitCode, a.exitCode))
 		res = false
 	}
-	if !a.outpipe.OK("stdout", stdout) {
-		a.failures = append(a.failures, a.outpipe.Failures()...)
+	if !a.expOutPipe.OK() {
+		a.failures = append(a.failures, a.expOutPipe.Failures()...)
 		res = false
 	}
-	if !a.errpipe.OK("stderr", stderr) {
-		a.failures = append(a.failures, a.errpipe.Failures()...)
+	if !a.expErrPipe.OK() {
+		a.failures = append(a.failures, a.expErrPipe.Failures()...)
 		res = false
 	}
 	return res
@@ -160,14 +165,31 @@ func (a *assertions) OK(
 // newAssertions returns an assertions object populated with the supplied exec
 // spec assertions
 func newAssertions(
+	expExitCode int,
 	exitCode int,
-	outpipe *PipeAssertions,
-	errpipe *PipeAssertions,
-) *assertions {
-	return &assertions{
-		failures: []error{},
-		exitCode: exitCode,
-		outpipe:  outpipe,
-		errpipe:  errpipe,
+	expOutPipe *PipeAssertions,
+	outPipe *bytes.Buffer,
+	expErrPipe *PipeAssertions,
+	errPipe *bytes.Buffer,
+) gdttypes.Assertions {
+	a := &assertions{
+		failures:    []error{},
+		expExitCode: exitCode,
+		exitCode:    exitCode,
 	}
+	if expOutPipe != nil {
+		a.expOutPipe = &pipeAssertions{
+			PipeAssertions: *expOutPipe,
+			name:           "stdout",
+			pipe:           outPipe,
+		}
+	}
+	if expErrPipe != nil {
+		a.expErrPipe = &pipeAssertions{
+			PipeAssertions: *expErrPipe,
+			name:           "stderr",
+			pipe:           errPipe,
+		}
+	}
+	return a
 }

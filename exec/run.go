@@ -19,9 +19,6 @@ import (
 
 // Run executes the specific exec test spec.
 func (s *Spec) Run(ctx context.Context, t *testing.T) error {
-	assertions := newAssertions(
-		s.ExitCode, s.Out, s.Err,
-	)
 	outbuf := &bytes.Buffer{}
 	errbuf := &bytes.Buffer{}
 
@@ -72,8 +69,11 @@ func (s *Spec) Run(ctx context.Context, t *testing.T) error {
 		eerr, _ := err.(*exec.ExitError)
 		ec = eerr.ExitCode()
 	}
+	assertions := newAssertions(
+		s.ExitCode, ec, s.Out, outbuf, s.Err, errbuf,
+	)
 
-	if !assertions.OK(ec, outbuf, errbuf) {
+	if !assertions.OK() {
 		for _, failure := range assertions.Failures() {
 			t.Error(failure)
 		}
