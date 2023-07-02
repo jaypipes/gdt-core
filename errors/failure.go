@@ -15,6 +15,15 @@ var (
 	ErrFailure = errors.New("assertion failed")
 )
 
+// TimeoutExceeded returns an ErrFailure when a test's execution exceeds a
+// timeout length.
+func TimeoutExceeded(duration string) error {
+	return fmt.Errorf(
+		"%s: timeout of %s exceeded",
+		ErrFailure, duration,
+	)
+}
+
 // NotEqualLength returns an ErrFailure when an expected length doesn't equal an
 // observed length.
 func NotEqualLength(exp, got int) error {

@@ -38,10 +38,13 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 				defer cancel()
 			}
 			err := spec.Run(ctx, t)
-			if to != nil {
-				if !to.Expected && gdtcontext.TimedOut(ctx, err) {
-					t.Fatalf("test runtime exceeded timeout of %s", to.After)
+			if gdtcontext.TimedOut(ctx, err) {
+				if to != nil && !to.Expected {
+					t.Fatal(gdterrors.TimeoutExceeded(to.After))
 				}
+				// Swallow the error since it's not a runtime error but rather
+				// an assertion failure.
+				err = nil
 			}
 			if res, ok := err.(*result.Result); ok {
 				// Results can have arbitrary run data stored in them and we

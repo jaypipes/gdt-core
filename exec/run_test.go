@@ -153,9 +153,8 @@ func TestSleepTimeout(t *testing.T) {
 	require.NotNil(s)
 
 	ctx := context.TODO()
-	s.Run(ctx, t)
-	// TODO(jaypipes): Uncomment when timeouts no longer return errors from Run()
-	// require.Nil(err)
+	err = s.Run(ctx, t)
+	require.Nil(err)
 }
 
 func TestDebugWriter(t *testing.T) {
