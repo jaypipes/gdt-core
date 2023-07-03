@@ -2,7 +2,7 @@
 //
 // See the COPYING file in the root project directory for full text.
 
-package fixture
+package json
 
 import (
 	"encoding/json"
@@ -58,12 +58,22 @@ func (f *jsonFixture) State(path string) interface{} {
 	}
 }
 
-// JSON takes an io.Reader and returns a new gdttypes.Fixture that can have its
-// data queried via JSONPath
-func JSON(r io.Reader) (gdttypes.Fixture, error) {
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
+// New takes a string, some bytes or an io.Reader and returns a new
+// gdttypes.Fixture that can have its state queried via JSONPath
+func New(data interface{}) (gdttypes.Fixture, error) {
+	var err error
+	var b []byte
+	switch data.(type) {
+	case io.Reader:
+		r := data.(io.Reader)
+		b, err = ioutil.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+	case []byte:
+		b = data.([]byte)
+	case string:
+		b = []byte(data.(string))
 	}
 	f := jsonFixture{
 		data: interface{}(nil),
