@@ -52,7 +52,31 @@ var (
 	ErrJSONFormatNotEqual = fmt.Errorf(
 		"%w: JSON format not equal", gdterrors.ErrFailure,
 	)
+	// ErrJSONSchemaFileNotFound indicates a specified JSONSchema file could
+	// not be found.
+	ErrJSONSchemaFileNotFound = fmt.Errorf(
+		"%w: unable to find JSONSchema file",
+		gdterrors.ErrInvalid,
+	)
+	// ErrUnsupportedJSONSchemaReference indicates that a specified JSONSchema
+	// file is referenced as an HTTP(S) URL instead of a file URI.
+	ErrUnsupportedJSONSchemaReference = fmt.Errorf(
+		"%w: unsupported JSONSchema reference",
+		gdterrors.ErrInvalid,
+	)
 )
+
+// UnsupportedJSONSchemaReference returns ErrUnsupportedJSONSchemaReference for
+// a supplied URL.
+func UnsupportedJSONSchemaReference(url string) error {
+	return fmt.Errorf("%w: %s", ErrUnsupportedJSONSchemaReference, url)
+}
+
+// JSONSchemaFileNotFound returns ErrJSONSchemaFileNotFound for a supplied
+// path.
+func JSONSchemaFileNotFound(path string) error {
+	return fmt.Errorf("%w: %s", ErrJSONSchemaFileNotFound, path)
+}
 
 // JSONUnmarshalError returns an ErrFailure when JSON content cannot be
 // decoded.

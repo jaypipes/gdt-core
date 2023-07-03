@@ -14,6 +14,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUnsupportedJSONSchemaReference(t *testing.T) {
+	require := require.New(t)
+
+	exp := gdtjson.Expect{
+		// http lookups are not allowed...
+		Schema: "http://example.com/schema",
+	}
+	err := exp.Valid()
+	require.NotNil(err)
+	require.ErrorIs(err, gdtjson.ErrUnsupportedJSONSchemaReference)
+}
+
+func TestJSONSchemaFileNotFound(t *testing.T) {
+	require := require.New(t)
+
+	exp := gdtjson.Expect{
+		Schema: "file:///path/does/not/exist",
+	}
+	err := exp.Valid()
+	require.NotNil(err)
+	require.ErrorIs(err, gdtjson.ErrJSONSchemaFileNotFound)
+}
+
 func content() []byte {
 	b, _ := ioutil.ReadFile(filepath.Join("testdata", "books.json"))
 	return b

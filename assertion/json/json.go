@@ -7,6 +7,9 @@ package json
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -30,6 +33,41 @@ type Expect struct {
 	// Schema is a file path to the JSONSchema that the JSON should validate
 	// against.
 	Schema string `yaml:"schema,omitempty"`
+}
+
+// Valid() returns any parse-time validation errors we found
+func (e *Expect) Valid() error {
+	if e == nil {
+		return nil
+	}
+	if e.Schema == "" {
+		return nil
+	}
+	// Ensure any JSONSchema URL specified in exponse.json.schema exists
+	schemaURL := e.Schema
+	if strings.HasPrefix(schemaURL, "http://") || strings.HasPrefix(schemaURL, "https://") {
+		// TODO(jaypipes): Support network lookups?
+		return UnsupportedJSONSchemaReference(schemaURL)
+	}
+	// Convert relative filepaths to absolute filepaths rooted in the context's
+	// testdir after stripping any "file://" scheme prefix
+	schemaURL = strings.TrimPrefix(schemaURL, "file://")
+	schemaURL, _ = filepath.Abs(schemaURL)
+
+	f, err := os.Open(schemaURL)
+	if err != nil {
+		return JSONSchemaFileNotFound(schemaURL)
+	}
+	defer f.Close()
+	if runtime.GOOS == "windows" {
+		// Need to do this because of an "optimization" done in the
+		// gojsonreference library:
+		// https://github.com/xeipuuv/gojsonreference/blob/bd5ef7bd5415a7ac448318e64f11a24cd21e594b/reference.go#L107-L114
+		e.Schema = "file:///" + schemaURL
+	} else {
+		e.Schema = "file://" + schemaURL
+	}
+	return nil
 }
 
 // New returns a `gdttypes.Assertions` that asserts various conditions about
