@@ -25,6 +25,9 @@ var (
 	// ErrNoneIn is an ErrFailure when none of a list of elements appears in an
 	// expected container.
 	ErrNoneIn = fmt.Errorf("%w: none in", ErrFailure)
+	// ErrUnexpectedError is an ErrFailure when an unexpected error has
+	// occurred.
+	ErrUnexpectedError = fmt.Errorf("%w: unexpected error", ErrFailure)
 )
 
 // TimeoutExceeded returns an ErrTimeoutExceeded when a test's execution
@@ -64,4 +67,10 @@ func NoneIn(elements, container interface{}) error {
 		"%w: expected %v to contain one of %v",
 		ErrNoneIn, container, elements,
 	)
+}
+
+// UnexpectedError returns an ErrUnexpectedError when a supplied error is not
+// expected.
+func UnexpectedError(err error) error {
+	return fmt.Errorf("%w: %s", ErrUnexpectedError, err)
 }
