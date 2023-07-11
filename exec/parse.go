@@ -17,11 +17,18 @@ import (
 	gdttypes "github.com/jaypipes/gdt-core/types"
 )
 
-// errUnknownShell returns a wrapped version of ErrInvalid that indicates the
+var (
+	// ErrUnknownShell returns an ErrParse when an unknown shell is specified
+	ErrUnknownShell = fmt.Errorf(
+		"%w: unknown shell", errors.ErrParse,
+	)
+)
+
+// UnknownShell returns a wrapped version of ErrParse that indicates the
 // user specified an unknown shell.
-func errUnknownShell(shell string) error {
+func UnknownShell(shell string) error {
 	return fmt.Errorf(
-		"%w: expected map field", errors.ErrInvalid,
+		"%w: %s", ErrUnknownShell, shell,
 	)
 }
 
@@ -45,7 +52,7 @@ func (s *Spec) UnmarshalYAML(node *yaml.Node) error {
 			}
 			s.Shell = strings.TrimSpace(valNode.Value)
 			if _, err := exec.LookPath(s.Shell); err != nil {
-				return errUnknownShell(s.Shell)
+				return UnknownShell(s.Shell)
 			}
 		case "exec":
 			if valNode.Kind != yaml.ScalarNode {

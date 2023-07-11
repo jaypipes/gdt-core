@@ -11,13 +11,13 @@ import (
 )
 
 var (
-	// ErrJSONPathInvalid returns an ErrInvalid when a JSONPath expression
-	// could not be parsed.
+	// ErrJSONPathInvalid returns an ErrParse when a JSONPath expression could
+	// not be parsed.
 	ErrJSONPathInvalid = fmt.Errorf(
-		"%w: JSONPath invalid", gdterrors.ErrInvalid,
+		"%w: JSONPath invalid", gdterrors.ErrParse,
 	)
-	// ErrJSONPathInvalidNoRoot returns an ErrInvalid when a JSONPath
-	// expression does not start with '$'
+	// ErrJSONPathInvalidNoRoot returns an ErrParse when a JSONPath expression
+	// does not start with '$'
 	ErrJSONPathInvalidNoRoot = fmt.Errorf(
 		"%w: expression must start with '$'", ErrJSONPathInvalid,
 	)
@@ -25,8 +25,8 @@ var (
 	ErrJSONUnmarshalError = fmt.Errorf(
 		"%w: failed to unmarshal JSON", gdterrors.ErrFailure,
 	)
-	// ErrJSONPathNotFound returns an ErrFailure when a JSONPath expression could
-	// not evaluate to a found element.
+	// ErrJSONPathNotFound returns an ErrFailure when a JSONPath expression
+	// could not evaluate to a found element.
 	ErrJSONPathNotFound = fmt.Errorf(
 		"%w: failed to find element at JSONPath", gdterrors.ErrFailure,
 	)
@@ -66,13 +66,13 @@ var (
 	// not be found.
 	ErrJSONSchemaFileNotFound = fmt.Errorf(
 		"%w: unable to find JSONSchema file",
-		gdterrors.ErrInvalid,
+		gdterrors.ErrParse,
 	)
 	// ErrUnsupportedJSONSchemaReference indicates that a specified JSONSchema
 	// file is referenced as an HTTP(S) URL instead of a file URI.
 	ErrUnsupportedJSONSchemaReference = fmt.Errorf(
 		"%w: unsupported JSONSchema reference",
-		gdterrors.ErrInvalid,
+		gdterrors.ErrParse,
 	)
 )
 
@@ -94,8 +94,8 @@ func JSONUnmarshalError(err error) error {
 	return fmt.Errorf("%w: %s", ErrJSONUnmarshalError, err)
 }
 
-// JSONPathInvalid returns an ErrInvalid when a JSONPath expression could not
-// be parsed.
+// JSONPathInvalid returns an ErrParse when a JSONPath expression could not be
+// parsed.
 func JSONPathInvalid(path string, err error) error {
 	return fmt.Errorf("%w: %s: %s", ErrJSONPathInvalid, path, err)
 }

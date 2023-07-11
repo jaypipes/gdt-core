@@ -21,41 +21,40 @@ var (
 	// ErrUnknownField indicates that there was an unknown field in the parsing
 	// of a spec or scenario.
 	ErrUnknownField = errors.New("unknown field")
-	// ErrInvalid indicates a YAML definition is not valid
-	ErrInvalid = errors.New("invalid YAML")
-	// ErrInvalidExpectedMap indicates that we did not find an
-	// expected mapping field
-	ErrInvalidExpectedMap = fmt.Errorf(
-		"%w: expected map field", ErrInvalid,
+	// ErrParse indicates a YAML definition is not valid
+	ErrParse = errors.New("invalid YAML")
+	// ErrExpectedMap indicates that we did not find an expected mapping
+	// field
+	ErrExpectedMap = fmt.Errorf(
+		"%w: expected map field", ErrParse,
 	)
-	// ErrInvalidExpectedScalar indicates that we did not find an
-	// expected scalar field
-	ErrInvalidExpectedScalar = fmt.Errorf(
-		"%w: expected scalar field", ErrInvalid,
+	// ErrExpectedScalar indicates that we did not find an expected scalar
+	// field
+	ErrExpectedScalar = fmt.Errorf(
+		"%w: expected scalar field", ErrParse,
 	)
-	// ErrInvalidExpectedSequence indicates that we did not find an
-	// expected scalar field
-	ErrInvalidExpectedSequence = fmt.Errorf(
-		"%w: expected sequence field", ErrInvalid,
+	// ErrExpectedSequence indicates that we did not find an expected
+	// scalar field
+	ErrExpectedSequence = fmt.Errorf(
+		"%w: expected sequence field", ErrParse,
 	)
-	// ErrInvalidExpectedInt indicates that we did not find an
-	// expected integer value
-	ErrInvalidExpectedInt = fmt.Errorf(
-		"%w: expected int value", ErrInvalid,
+	// ErrExpectedInt indicates that we did not find an expected integer
+	// value
+	ErrExpectedInt = fmt.Errorf(
+		"%w: expected int value", ErrParse,
 	)
-	// ErrInvalidTimeout indicates that the timeout specification was not
-	// valid.
-	ErrInvalidExpectedTimeout = fmt.Errorf(
-		"%w: expected timeout specification", ErrInvalid,
+	// ErrParseTimeout indicates that the timeout specification was not valid.
+	ErrExpectedTimeout = fmt.Errorf(
+		"%w: expected timeout specification", ErrParse,
 	)
-	// ErrInvalidWait indicates that the wait specification was not valid.
-	ErrInvalidExpectedWait = fmt.Errorf(
-		"%w: expected wait specification", ErrInvalid,
+	// ErrParseWait indicates that the wait specification was not valid.
+	ErrExpectedWait = fmt.Errorf(
+		"%w: expected wait specification", ErrParse,
 	)
-	// ErrInvalidFileNotFound is returned when a file path does not exist
-	// for a create/apply/delete target.
-	ErrInvalidFileNotFound = fmt.Errorf(
-		"%w: file not found", ErrInvalid,
+	// ErrFileNotFound is returned when a file path does not exist for a
+	// create/apply/delete target.
+	ErrFileNotFound = fmt.Errorf(
+		"%w: file not found", ErrParse,
 	)
 )
 
@@ -77,57 +76,57 @@ func UnknownFieldAt(field string, node *yaml.Node) error {
 	)
 }
 
-// ExpectedMapAt returns an ErrInvalidExpectedMap error annotated with the
+// ExpectedMapAt returns an ErrExpectedMap error annotated with the
 // line/column of the supplied YAML node.
 func ExpectedMapAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
-		ErrInvalidExpectedMap, node.Line, node.Column,
+		ErrExpectedMap, node.Line, node.Column,
 	)
 }
 
-// ExpectedScalarAt returns an ErrInvalidExpectedScalar error annotated with
+// ExpectedScalarAt returns an ErrExpectedScalar error annotated with
 // the line/column of the supplied YAML node.
 func ExpectedScalarAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
-		ErrInvalidExpectedScalar, node.Line, node.Column,
+		ErrExpectedScalar, node.Line, node.Column,
 	)
 }
 
-// ExpectedSequenceAt returns an ErrInvalidExpectedSequence error annotated
+// ExpectedSequenceAt returns an ErrExpectedSequence error annotated
 // with the line/column of the supplied YAML node.
 func ExpectedSequenceAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
-		ErrInvalidExpectedSequence, node.Line, node.Column,
+		ErrExpectedSequence, node.Line, node.Column,
 	)
 }
 
-// ExpectedIntAt returns an ErrInvalidExpectedInt error annotated
+// ExpectedIntAt returns an ErrExpectedInt error annotated
 // with the line/column of the supplied YAML node.
 func ExpectedIntAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
-		ErrInvalidExpectedInt, node.Line, node.Column,
+		ErrExpectedInt, node.Line, node.Column,
 	)
 }
 
-// ExpectedTimeoutAt returns an ErrInvalidExpectedTimeout error annotated
+// ExpectedTimeoutAt returns an ErrExpectedTimeout error annotated
 // with the line/column of the supplied YAML node.
 func ExpectedTimeoutAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
-		ErrInvalidExpectedTimeout, node.Line, node.Column,
+		ErrExpectedTimeout, node.Line, node.Column,
 	)
 }
 
-// ExpectedWaitAt returns an ErrInvalidExpectedWait error annotated with the
+// ExpectedWaitAt returns an ErrExpectedWait error annotated with the
 // line/column of the supplied YAML node.
 func ExpectedWaitAt(node *yaml.Node) error {
 	return fmt.Errorf(
 		"%w at line %d, column %d",
-		ErrInvalidExpectedWait, node.Line, node.Column,
+		ErrExpectedWait, node.Line, node.Column,
 	)
 }
 
@@ -137,7 +136,7 @@ func UnknownSourceType(source interface{}) error {
 	return fmt.Errorf("%w: %T", ErrUnknownSourceType, source)
 }
 
-// FileNotFound returns ErrInvalidFileNotFound for a given file path
+// FileNotFound returns ErrFileNotFound for a given file path
 func FileNotFound(path string) error {
-	return fmt.Errorf("%w: %s", ErrInvalidFileNotFound, path)
+	return fmt.Errorf("%w: %s", ErrFileNotFound, path)
 }

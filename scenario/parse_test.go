@@ -385,7 +385,7 @@ func TestBadTimeout(t *testing.T) {
 		scenario.WithPath(fp),
 		scenario.WithContext(ctx),
 	)
-	assert.ErrorIs(err, errors.ErrInvalidExpectedMap)
+	assert.ErrorIs(err, errors.ErrExpectedMap)
 	assert.Nil(s)
 }
 

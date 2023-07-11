@@ -30,7 +30,8 @@ func TestUnknownShell(t *testing.T) {
 		scenario.WithPath(fp),
 	)
 	assert.NotNil(err)
-	assert.ErrorIs(err, errors.ErrInvalid)
+	assert.ErrorIs(err, gdtexec.ErrUnknownShell)
+	assert.ErrorIs(err, errors.ErrParse)
 	assert.Nil(s)
 }
 

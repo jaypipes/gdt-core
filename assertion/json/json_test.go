@@ -60,7 +60,7 @@ paths: notamap
 `)
 	err = yaml.Unmarshal(content, &exp)
 	require.NotNil(err)
-	require.ErrorIs(err, gdterrors.ErrInvalidExpectedMap)
+	require.ErrorIs(err, gdterrors.ErrExpectedMap)
 
 	content = []byte(`
 len: 1
