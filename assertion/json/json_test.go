@@ -12,16 +12,19 @@ import (
 	gdtjson "github.com/jaypipes/gdt-core/assertion/json"
 	gdterrors "github.com/jaypipes/gdt-core/errors"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func TestUnsupportedJSONSchemaReference(t *testing.T) {
 	require := require.New(t)
 
-	exp := gdtjson.Expect{
-		// http lookups are not allowed...
-		Schema: "http://example.com/schema",
-	}
-	err := exp.Valid()
+	var exp gdtjson.Expect
+
+	// http lookups are not allowed...
+	content := []byte(`
+schema: http://example.com/schema
+`)
+	err := yaml.Unmarshal(content, &exp)
 	require.NotNil(err)
 	require.ErrorIs(err, gdtjson.ErrUnsupportedJSONSchemaReference)
 }
@@ -29,12 +32,62 @@ func TestUnsupportedJSONSchemaReference(t *testing.T) {
 func TestJSONSchemaFileNotFound(t *testing.T) {
 	require := require.New(t)
 
-	exp := gdtjson.Expect{
-		Schema: "file:///path/does/not/exist",
-	}
-	err := exp.Valid()
+	var exp gdtjson.Expect
+
+	content := []byte(`
+schema: file:///path/does/not/exist
+`)
+	err := yaml.Unmarshal(content, &exp)
 	require.NotNil(err)
 	require.ErrorIs(err, gdtjson.ErrJSONSchemaFileNotFound)
+}
+
+func TestJSONPathInvalid(t *testing.T) {
+	require := require.New(t)
+
+	var exp gdtjson.Expect
+
+	content := []byte(`
+len: foo
+`)
+	err := yaml.Unmarshal(content, &exp)
+	require.NotNil(err)
+	require.ErrorContains(err, "yaml: unmarshal errors")
+
+	content = []byte(`
+len: 1
+paths: notamap
+`)
+	err = yaml.Unmarshal(content, &exp)
+	require.NotNil(err)
+	require.ErrorIs(err, gdterrors.ErrInvalidExpectedMap)
+
+	content = []byte(`
+len: 1
+paths:
+  noroot: value
+`)
+	err = yaml.Unmarshal(content, &exp)
+	require.NotNil(err)
+	require.ErrorIs(err, gdtjson.ErrJSONPathInvalidNoRoot)
+
+	content = []byte(`
+len: 1
+paths:
+  $[1-2,3].key: value
+`)
+	err = yaml.Unmarshal(content, &exp)
+	require.NotNil(err)
+	require.ErrorIs(err, gdtjson.ErrJSONPathInvalid)
+
+	content = []byte(`
+len: 1
+paths:
+  $.: value
+`)
+	err = yaml.Unmarshal(content, &exp)
+	require.NotNil(err)
+	require.ErrorIs(err, gdtjson.ErrJSONPathInvalid)
 }
 
 func content() []byte {
@@ -92,18 +145,16 @@ func TestJSONPathError(t *testing.T) {
 
 	exp := gdtjson.Expect{
 		Paths: map[string]string{
-			// This is not a valid JSONPath expression... must begin with the
-			// root element $
 			"[0].pages": "127",
 		},
 	}
 
 	a := gdtjson.New(&exp, c)
 	require.False(a.OK())
-	require.True(a.Terminal())
+	require.False(a.Terminal())
 	failures := a.Failures()
 	require.Len(failures, 1)
-	require.ErrorIs(failures[0], gdtjson.ErrJSONPathError)
+	require.ErrorIs(failures[0], gdtjson.ErrJSONPathNotFound)
 }
 
 func TestJSONPathConversionError(t *testing.T) {
@@ -155,23 +206,23 @@ func TestJSONPathNotEqual(t *testing.T) {
 	require.ErrorIs(failures[0], gdtjson.ErrJSONPathNotEqual)
 }
 
-func TestJSONPathFormatError(t *testing.T) {
+func TestJSONPathFormatNotFound(t *testing.T) {
 	require := require.New(t)
 
 	c := content()
 
 	exp := gdtjson.Expect{
 		PathFormats: map[string]string{
-			"$[0].pages": "invalidformat",
+			"$.noexist": "invalidformat",
 		},
 	}
 
 	a := gdtjson.New(&exp, c)
 	require.False(a.OK())
-	require.True(a.Terminal())
+	require.False(a.Terminal())
 	failures := a.Failures()
 	require.Len(failures, 1)
-	require.ErrorIs(failures[0], gdtjson.ErrJSONFormatError)
+	require.ErrorIs(failures[0], gdtjson.ErrJSONPathNotFound)
 }
 
 func TestJSONPathFormatNotEqual(t *testing.T) {

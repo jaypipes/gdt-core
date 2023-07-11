@@ -15,9 +15,16 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	gjs "github.com/xeipuuv/gojsonschema"
+	"gopkg.in/yaml.v3"
 
 	gdterrors "github.com/jaypipes/gdt-core/errors"
 	gdttypes "github.com/jaypipes/gdt-core/types"
+)
+
+var (
+	// defining the JSONPath language here allows us to disaggregate parse
+	// errors from runtime errors when evaluating a JSONPath expression.
+	lang = jsonpath.Language()
 )
 
 // Expect represents one or more assertions about JSON data responses
@@ -35,37 +42,94 @@ type Expect struct {
 	Schema string `yaml:"schema,omitempty"`
 }
 
-// Valid() returns any parse-time validation errors we found
-func (e *Expect) Valid() error {
-	if e == nil {
-		return nil
+// UnmarshalYAML is a custom unmarshaler that ensures that JSONPath expressions
+// contained in the Expect are valid.
+func (e *Expect) UnmarshalYAML(node *yaml.Node) error {
+	if node.Kind != yaml.MappingNode {
+		return gdterrors.ExpectedMapAt(node)
 	}
-	if e.Schema == "" {
-		return nil
-	}
-	// Ensure any JSONSchema URL specified in exponse.json.schema exists
-	schemaURL := e.Schema
-	if strings.HasPrefix(schemaURL, "http://") || strings.HasPrefix(schemaURL, "https://") {
-		// TODO(jaypipes): Support network lookups?
-		return UnsupportedJSONSchemaReference(schemaURL)
-	}
-	// Convert relative filepaths to absolute filepaths rooted in the context's
-	// testdir after stripping any "file://" scheme prefix
-	schemaURL = strings.TrimPrefix(schemaURL, "file://")
-	schemaURL, _ = filepath.Abs(schemaURL)
+	// maps/structs are stored in a top-level Node.Content field which is a
+	// concatenated slice of Node pointers in pairs of key/values.
+	for i := 0; i < len(node.Content); i += 2 {
+		keyNode := node.Content[i]
+		if keyNode.Kind != yaml.ScalarNode {
+			return gdterrors.ExpectedScalarAt(keyNode)
+		}
+		key := keyNode.Value
+		valNode := node.Content[i+1]
+		switch key {
+		case "len":
+			if valNode.Kind != yaml.ScalarNode {
+				return gdterrors.ExpectedScalarAt(valNode)
+			}
+			var v *int
+			if err := valNode.Decode(&v); err != nil {
+				return err
+			}
+			e.Len = v
+		case "schema":
+			if valNode.Kind != yaml.ScalarNode {
+				return gdterrors.ExpectedScalarAt(valNode)
+			}
+			// Ensure any JSONSchema URL specified in exponse.json.schema exists
+			schemaURL := valNode.Value
+			if strings.HasPrefix(schemaURL, "http://") || strings.HasPrefix(schemaURL, "https://") {
+				// TODO(jaypipes): Support network lookups?
+				return UnsupportedJSONSchemaReference(schemaURL)
+			}
+			// Convert relative filepaths to absolute filepaths rooted in the context's
+			// testdir after stripping any "file://" scheme prefix
+			schemaURL = strings.TrimPrefix(schemaURL, "file://")
+			schemaURL, _ = filepath.Abs(schemaURL)
 
-	f, err := os.Open(schemaURL)
-	if err != nil {
-		return JSONSchemaFileNotFound(schemaURL)
-	}
-	defer f.Close()
-	if runtime.GOOS == "windows" {
-		// Need to do this because of an "optimization" done in the
-		// gojsonreference library:
-		// https://github.com/xeipuuv/gojsonreference/blob/bd5ef7bd5415a7ac448318e64f11a24cd21e594b/reference.go#L107-L114
-		e.Schema = "file:///" + schemaURL
-	} else {
-		e.Schema = "file://" + schemaURL
+			f, err := os.Open(schemaURL)
+			if err != nil {
+				return JSONSchemaFileNotFound(schemaURL)
+			}
+			defer f.Close()
+			if runtime.GOOS == "windows" {
+				// Need to do this because of an "optimization" done in the
+				// gojsonreference library:
+				// https://github.com/xeipuuv/gojsonreference/blob/bd5ef7bd5415a7ac448318e64f11a24cd21e594b/reference.go#L107-L114
+				e.Schema = "file:///" + schemaURL
+			} else {
+				e.Schema = "file://" + schemaURL
+			}
+		case "paths":
+			if valNode.Kind != yaml.MappingNode {
+				return gdterrors.ExpectedMapAt(valNode)
+			}
+			paths := map[string]string{}
+			if err := valNode.Decode(&paths); err != nil {
+				return err
+			}
+			for path, _ := range paths {
+				if len(path) == 0 || path[0] != '$' {
+					return JSONPathInvalidNoRoot(path)
+				}
+				if _, err := lang.NewEvaluable(path); err != nil {
+					return JSONPathInvalid(path, err)
+				}
+			}
+			e.Paths = paths
+		case "path_formats":
+			if valNode.Kind != yaml.MappingNode {
+				return gdterrors.ExpectedMapAt(valNode)
+			}
+			pathFormats := map[string]string{}
+			if err := valNode.Decode(&pathFormats); err != nil {
+				return err
+			}
+			for pathFormat, _ := range pathFormats {
+				if len(pathFormat) == 0 || pathFormat[0] != '$' {
+					return JSONPathInvalidNoRoot(pathFormat)
+				}
+				if _, err := lang.NewEvaluable(pathFormat); err != nil {
+					return JSONPathInvalid(pathFormat, err)
+				}
+			}
+			e.PathFormats = pathFormats
+		}
 	}
 	return nil
 }
@@ -171,8 +235,9 @@ func (a *assertions) pathsOK() bool {
 	for path, expVal := range a.exp.Paths {
 		got, err := jsonpath.Get(path, v)
 		if err != nil {
-			a.Fail(JSONPathError(path, err))
-			a.terminal = true
+			// Not terminal because during parse we validate the JSONPath
+			// expression is valid.
+			a.Fail(JSONPathNotFound(path, err))
 			return false
 		}
 		switch got.(type) {
@@ -241,8 +306,9 @@ func (a *assertions) pathFormatsOK() bool {
 	for path, format := range a.exp.PathFormats {
 		got, err := jsonpath.Get(path, v)
 		if err != nil {
-			a.Fail(JSONPathError(path, err))
-			a.terminal = true
+			// Not terminal because during parse we validate the JSONPath
+			// expression is valid.
+			a.Fail(JSONPathNotFound(path, err))
 			return false
 		}
 		ok, err := isFormatted(format, got)

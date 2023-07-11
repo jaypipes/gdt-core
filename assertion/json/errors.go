@@ -11,14 +11,24 @@ import (
 )
 
 var (
+	// ErrJSONPathInvalid returns an ErrInvalid when a JSONPath expression
+	// could not be parsed.
+	ErrJSONPathInvalid = fmt.Errorf(
+		"%w: JSONPath invalid", gdterrors.ErrInvalid,
+	)
+	// ErrJSONPathInvalidNoRoot returns an ErrInvalid when a JSONPath
+	// expression does not start with '$'
+	ErrJSONPathInvalidNoRoot = fmt.Errorf(
+		"%w: expression must start with '$'", ErrJSONPathInvalid,
+	)
 	// ErrJSONUnmarshalError is returned when JSON content cannot be decoded
 	ErrJSONUnmarshalError = fmt.Errorf(
 		"%w: failed to unmarshal JSON", gdterrors.ErrFailure,
 	)
-	// ErrJSONPathError returns an ErrFailure when a JSONPath expression could
+	// ErrJSONPathNotFound returns an ErrFailure when a JSONPath expression could
 	// not evaluate to a found element.
-	ErrJSONPathError = fmt.Errorf(
-		"%w: failed to find JSONPath", gdterrors.ErrFailure,
+	ErrJSONPathNotFound = fmt.Errorf(
+		"%w: failed to find element at JSONPath", gdterrors.ErrFailure,
 	)
 	// ErrJSONPathConversionError returns an ErrFailure when a JSONPath
 	// expression evaluated to a found element but could not be converted to a
@@ -84,10 +94,22 @@ func JSONUnmarshalError(err error) error {
 	return fmt.Errorf("%w: %s", ErrJSONUnmarshalError, err)
 }
 
-// JSONPathError returns an ErrFailure when a JSONPath expression could not
+// JSONPathInvalid returns an ErrInvalid when a JSONPath expression could not
+// be parsed.
+func JSONPathInvalid(path string, err error) error {
+	return fmt.Errorf("%w: %s: %s", ErrJSONPathInvalid, path, err)
+}
+
+// JSONPathInvalidNoRoot returns an ErrJSONPathInvalidNoRoot when a JSONPath
+// expression does not start with '$'.
+func JSONPathInvalidNoRoot(path string) error {
+	return fmt.Errorf("%w: %s", ErrJSONPathInvalidNoRoot, path)
+}
+
+// JSONPathNotFound returns an ErrFailure when a JSONPath expression could not
 // evaluate to a found element.
-func JSONPathError(path string, err error) error {
-	return fmt.Errorf("%w: %s: %s", ErrJSONPathError, path, err)
+func JSONPathNotFound(path string, err error) error {
+	return fmt.Errorf("%w: %s: %s", ErrJSONPathNotFound, path, err)
 }
 
 // JSONPathConversionError returns an ErrFailure when a JSONPath expression
