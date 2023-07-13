@@ -15,6 +15,9 @@ import (
 // Printf writes a message with optional message arguments to the context's
 // Debug output.
 func Printf(ctx context.Context, format string, args ...interface{}) {
+	if !strings.HasPrefix(format, "(gdt) ") {
+		format = "(gdt) " + format
+	}
 	msg := fmt.Sprintf(format, args...)
 	dbg := gdtcontext.Debug(ctx)
 	dbg.Write([]byte(msg))
@@ -26,7 +29,5 @@ func Println(ctx context.Context, format string, args ...interface{}) {
 	if !strings.HasSuffix(format, "\n") {
 		format += "\n"
 	}
-	msg := fmt.Sprintf(format, args...)
-	dbg := gdtcontext.Debug(ctx)
-	dbg.Write([]byte(msg))
+	Printf(ctx, format, args...)
 }

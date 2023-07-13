@@ -204,3 +204,32 @@ func TestMissingFixtures(t *testing.T) {
 	assert.ErrorIs(err, gdterrors.ErrRuntime)
 	assert.ErrorIs(err, gdterrors.ErrRequiredFixture)
 }
+
+func TestDebugFlushing(t *testing.T) {
+	require := require.New(t)
+	reg := plugin.NewRegistry()
+
+	reg.Add(&fooPlugin{})
+
+	fp := filepath.Join("testdata", "foo-debug-wait-flush.yaml")
+	f, err := os.Open(fp)
+	require.Nil(err)
+
+	ctx := gdtcontext.New(
+		gdtcontext.WithPlugins(
+			reg.List(),
+		),
+		gdtcontext.WithDebug(os.Stdout),
+	)
+
+	s, err := scenario.FromReader(
+		f,
+		scenario.WithPath(fp),
+		scenario.WithContext(ctx),
+	)
+	require.Nil(err)
+	require.NotNil(s)
+
+	err = s.Run(ctx, t)
+	require.Nil(err)
+}
