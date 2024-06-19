@@ -94,7 +94,12 @@ func (s *Scenario) Run(ctx context.Context, t *testing.T) error {
 			// save this prior run data in the top-level context (and pass
 			// that context to the next Run invocation).
 			if res.HasData() {
-				ctx = gdtcontext.StorePriorRun(ctx, res.Data())
+				ctx = gdtcontext.SetRunData(ctx, res.Data())
+			}
+			// Same for user-defined variables that should be stored in the
+			// context and passed to the next Run invocation
+			if res.HasVars() {
+				ctx = gdtcontext.SetRunVars(ctx, res.Vars())
 			}
 			if wait != nil && wait.After != "" {
 				debug.Println(ctx, "wait: %s after", wait.After)

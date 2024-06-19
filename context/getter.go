@@ -71,13 +71,27 @@ func Fixtures(ctx context.Context) map[string]gdttypes.Fixture {
 	return map[string]gdttypes.Fixture{}
 }
 
-// PriorRun gets a context's prior run data
-func PriorRun(ctx context.Context) map[string]interface{} {
+// RunData gets a context's run data
+func RunData(ctx context.Context) map[string]interface{} {
 	if ctx == nil {
 		return map[string]interface{}{}
 	}
-	if v := ctx.Value(priorRunKey); v != nil {
+	if v := ctx.Value(runDataKey); v != nil {
 		return v.(map[string]interface{})
 	}
 	return map[string]interface{}{}
 }
+
+// RunVars gets a context's run variables
+func RunVars(ctx context.Context) map[string]interface{} {
+	if ctx == nil {
+		return map[string]interface{}{}
+	}
+	if v := ctx.Value(runVarsKey); v != nil {
+		return v.(map[string]interface{})
+	}
+	return map[string]interface{}{}
+}
+
+// Deprecated, use RunData
+var PriorRun = RunData

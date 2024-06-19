@@ -31,9 +31,18 @@ type Result struct {
 	failures []error
 	// data is a map, keyed by plugin name, of data about the spec run. Plugins
 	// can place anything they want in here and grab it from the context with
-	// the `gdtcontext.PriorRunData()` function. Plugins are responsible for
-	// clearing and setting any used prior run data.
+	// the `gdtcontext.RunData()` function. Plugins can either set run data
+	// into the context using `gdtcontext.SetRunData()` or use the
+	// `result.WithData()` modifier when returning a Result.
 	data map[string]interface{}
+	// vars is a map, keyed by variable name, of variables the test user saved
+	// from an individual test step's output. Plugins can place anything they
+	// want in here and grab it from the context with the the
+	// `gdtcontext.RunVars()` function. Plugins can either set run data into
+	// the context using `gdtcontext.SetRunData()` or use the
+	// `result.WithVar()` modifier when returning a Result.  clearing and
+	// setting run variables.
+	vars map[string]interface{}
 }
 
 // HasRuntimeError returns true if the Eval() returned a runtime error, false
@@ -52,9 +61,20 @@ func (r *Result) HasData() bool {
 	return r.data != nil
 }
 
+// HasVars returns true if any of the run variables has been set, false
+// otherwise.
+func (r *Result) HasVars() bool {
+	return r.vars != nil
+}
+
 // Data returns the raw run data saved in the result
 func (r *Result) Data() map[string]interface{} {
 	return r.data
+}
+
+// Vars returns the raw run vars saved in the result
+func (r *Result) Vars() map[string]interface{} {
+	return r.vars
 }
 
 // Failed returns true if any assertion failed during Eval(), false otherwise.
@@ -77,6 +97,17 @@ func (r *Result) SetData(
 		r.data = map[string]interface{}{}
 	}
 	r.data[key] = val
+}
+
+// SetVars sets a value in the result's run variables cache.
+func (r *Result) SetVars(
+	key string,
+	val interface{},
+) {
+	if r.vars == nil {
+		r.vars = map[string]interface{}{}
+	}
+	r.vars[key] = val
 }
 
 // SetFailures sets the result's collection of assertion failures.
@@ -103,6 +134,13 @@ func WithRuntimeError(err error) ResultModifier {
 func WithData(key string, val interface{}) ResultModifier {
 	return func(r *Result) {
 		r.SetData(key, val)
+	}
+}
+
+// WithVar modifies the Result with the supplied run variable key and value
+func WithVar(key string, val interface{}) ResultModifier {
+	return func(r *Result) {
+		r.SetVars(key, val)
 	}
 }
 

@@ -20,7 +20,8 @@ var (
 	traceKey    = ContextKey("gdt.trace")
 	pluginsKey  = ContextKey("gdt.plugins")
 	fixturesKey = ContextKey("gdt.fixtures")
-	priorRunKey = ContextKey("gdt.run.prior")
+	runDataKey  = ContextKey("gdt.run.data")
+	runVarsKey  = ContextKey("gdt.run.vars")
 )
 
 // ContextModifier sets some value on the context
@@ -144,16 +145,31 @@ func RegisterPlugin(
 	return context.WithValue(ctx, pluginsKey, plugins)
 }
 
-// StorePriorRun saves prior run data in the context. If there is already prior
+// SetRunData saves prior run data in the context. If there is already prior
 // run data cached in the supplied context, the existing data is merged with
 // the supplied data.
-func StorePriorRun(
+func SetRunData(
 	ctx context.Context,
 	data map[string]interface{},
 ) context.Context {
-	existing := PriorRun(ctx)
+	existing := RunData(ctx)
 	merged := lo.Assign(existing, data)
-	return context.WithValue(ctx, priorRunKey, merged)
+	return context.WithValue(ctx, runDataKey, merged)
+}
+
+// Deprecated, use SetRunData
+var StorePriorRun = SetRunData
+
+// SetRunVars saves prior run data in the context. If there are already prior
+// run vars cached in the supplied context, the existing vars are merged with
+// the supplied variables.
+func SetRunVars(
+	ctx context.Context,
+	vars map[string]interface{},
+) context.Context {
+	existing := RunVars(ctx)
+	merged := lo.Assign(existing, vars)
+	return context.WithValue(ctx, runVarsKey, merged)
 }
 
 // PushTrace pushes a debug/trace name onto the debug/trace stack. It is used
