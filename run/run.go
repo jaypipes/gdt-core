@@ -1,31 +1,36 @@
 package run
 
 import (
+	"path/filepath"
 	"slices"
 	"time"
 
+	"github.com/samber/lo"
+
 	"github.com/gdt-dev/core/api"
 	"github.com/gdt-dev/core/testunit"
-	"github.com/samber/lo"
 )
 
 // Run stores state of a test run when tests are executed with the `gdt` CLI
 // tool.
 type Run struct {
 	// scenarioResults is a map, keyed by the Scenario path, of slices of
-	// TestUnitResult structs corresponding to the test specs in the scenario.
-	// There is guaranteed to be exactly the same number of TestUnitResults in
+	// testunit.Result structs corresponding to the test specs in the scenario.
+	// There is guaranteed to be exactly the same number of testunit.Results in
 	// the slice as scenarios in the scenario.
-	scenarioResults map[string][]TestUnitResult
+	scenarioResults map[string][]testunit.Result
 }
 
 // OK returns true if all Scenarios in the Run had all successful test units.
 func (r *Run) OK() bool {
-	return lo.EveryBy(lo.Values(r.scenarioResults), func(results []TestUnitResult) bool {
-		return lo.EveryBy(results, func(tur TestUnitResult) bool {
-			return tur.OK()
-		})
-	})
+	return lo.EveryBy(
+		lo.Values(r.scenarioResults),
+		func(results []testunit.Result) bool {
+			return lo.EveryBy(results, func(tur testunit.Result) bool {
+				return tur.OK()
+			})
+		},
+	)
 }
 
 // ScenarioPaths returns a sorted list of Scenario Paths.
@@ -35,9 +40,9 @@ func (r *Run) ScenarioPaths() []string {
 	return paths
 }
 
-// ScenarioResults returns the set of TestUnitResults for a Scenario with the
+// ScenarioResults returns the set of testunit.Results for a Scenario with the
 // supplied path.
-func (r *Run) ScenarioResults(path string) []TestUnitResult {
+func (r *Run) ScenarioResults(path string) []testunit.Result {
 	return r.scenarioResults[path]
 }
 
@@ -49,63 +54,52 @@ func (r *Run) StoreResult(
 	res *api.Result,
 ) {
 	if _, ok := r.scenarioResults[path]; !ok {
-		r.scenarioResults[path] = []TestUnitResult{}
+		r.scenarioResults[path] = []testunit.Result{}
 	}
 	r.scenarioResults[path] = append(
 		r.scenarioResults[path],
-		TestUnitResult{
-			index:    index,
-			name:     tu.Name(),
-			elapsed:  tu.Elapsed(),
-			skipped:  tu.Skipped(),
-			failures: res.Failures(),
-			detail:   tu.Detail(),
-		},
+		testunit.NewResult(index, tu, res),
 	)
 }
 
-// TestUnitResult stores a summary of the test execution of a single test unit.
-type TestUnitResult struct {
-	// index is the 0-based index of the test unit within the test scenario.
-	index int
-	// name is the short name of the test unit
-	name string
-	// skipped is true if the test unit was skipped
-	skipped bool
-	// failures is the collection of assertion failures for the test spec that
-	// occurred during the run. this will NOT include RuntimeErrors.
-	failures []error
-	// elapsed is the time take to execute the test unit
-	elapsed time.Duration
-	// detail is a buffer holding any log entries made during the run of the
-	// test spec.
-	detail string
-}
+// XUnit returns the Run's scenario results as a slice of structs that can be
+// serialized to either XML (JUnit/XUnit-style) or JSON.
+func (r *Run) XUnit() []api.XUnitTestSuite {
+	suites := []api.XUnitTestSuite{}
+	paths := r.ScenarioPaths()
+	for _, path := range paths {
+		shortPath := filepath.Base(path)
+		suite := api.XUnitTestSuite{
+			Name: shortPath,
+			Properties: []api.XUnitProperty{
+				{
+					Name:  "path",
+					Value: path,
+				},
+			},
+			Timestamp: time.Now(),
+		}
 
-func (u TestUnitResult) OK() bool {
-	return len(u.failures) == 0
-}
+		var scenElapsed time.Duration
 
-func (u TestUnitResult) Name() string {
-	return u.name
-}
+		unitResults := r.ScenarioResults(path)
 
-func (u TestUnitResult) Index() int {
-	return u.index
-}
+		testcases := make([]api.XUnitTestCase, len(unitResults))
+		tcFails := 0
 
-func (u TestUnitResult) Failures() []error {
-	return u.failures
-}
-
-func (u TestUnitResult) Skipped() bool {
-	return u.skipped
-}
-
-func (u TestUnitResult) Detail() string {
-	return u.detail
-}
-
-func (u TestUnitResult) Elapsed() time.Duration {
-	return u.elapsed
+		for x, res := range unitResults {
+			tc := res.XUnit()
+			if res.Failed() {
+				tcFails++
+			}
+			scenElapsed += res.Elapsed()
+			testcases[x] = tc
+		}
+		suite.Failures = tcFails
+		suite.Tests = len(testcases)
+		suite.Time = scenElapsed.String()
+		suite.TestCases = testcases
+		suites = append(suites, suite)
+	}
+	return suites
 }
